@@ -1,6 +1,7 @@
 package zstr
 
 import (
+	"strconv"
 	"strings"
 )
 
@@ -31,3 +32,20 @@ if header == "" {
 }
 
 ***********************/
+
+func ToString(args ...interface{}) string {
+	// 转化并拼接
+	// ToString("abcd", 12, 45)
+	// => abcd1245
+
+	result := ""
+	for _, arg := range args {
+		switch val := arg.(type) {
+		case int:
+			result += strconv.Itoa(val)
+		case string:
+			result += val
+		}
+	}
+	return result
+}
