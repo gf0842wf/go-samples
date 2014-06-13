@@ -34,3 +34,7 @@ strings.Count(s string, sep string) int
 
 - Partition  类似python的str.partition, 在udp包解析时很好用
 - ToString   把多个字段转换为string并拼接
+- IsSpace    是不是空字符
+- Trim
+- TrimBytes
+- TrimExtraSpace
