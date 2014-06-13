@@ -18,7 +18,8 @@ print repr(data)
 # '\x00\x00\x00\x06abcdef'
 sock.sendall(data*3)                    
 
-buf = sock.recv(1024)
-print buf
+while True:
+    buf = sock.recv(1024)
+    print buf
 
 sock.close()

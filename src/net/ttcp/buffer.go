@@ -33,12 +33,13 @@ func (buf *Buffer) Start() {
 		case data := <-buf.pending:
 			buf.rawSend(data)
 		case <-buf.ctrl: // session end, send final data
-			close(buf.pending)
+			defer close(buf.pending)
 			for data := range buf.pending {
 				buf.rawSend(data)
 			}
 			// close connection
 			buf.conn.Close()
+			fmt.Println("Close connection")
 			return
 		}
 	}

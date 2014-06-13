@@ -18,6 +18,7 @@ const (
 	TCP_TIMEOUT          = 120
 	MAX_DELAY_IN         = 120
 	DEFAULT_INQUEUE_SIZE = 128
+	TEST                 = true
 )
 
 func main() {
@@ -90,7 +91,6 @@ func handleClient(conn *net.TCPConn) {
 			fmt.Println("Error recv msg:", n, err)
 			break
 		}
-
 		// data初步解析好了, 得到了一个完整的消息, 送去继续处理
 		select {
 		case inChs <- data:
