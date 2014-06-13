@@ -5,8 +5,8 @@ import (
 	"strings"
 )
 
+// Partition(s, sep) -> (head, sep, tail)
 func Partition(s string, sep string) (head string, retSep string, tail string) {
-	// Partition(s, sep) -> (head, sep, tail)
 	index := strings.Index(s, sep)
 	if index == -1 {
 		head = s
@@ -33,11 +33,10 @@ if header == "" {
 
 ***********************/
 
+// 转化并拼接
+// ToString("abcd", 12, 45)
+// => abcd1245
 func ToString(args ...interface{}) string {
-	// 转化并拼接
-	// ToString("abcd", 12, 45)
-	// => abcd1245
-
 	result := ""
 	for _, arg := range args {
 		switch val := arg.(type) {
