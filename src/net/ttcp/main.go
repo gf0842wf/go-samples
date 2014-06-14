@@ -73,24 +73,13 @@ func handleClient(conn *net.TCPConn) {
 	go HandleRequest(&sess, inChs, outTag) // 开启处理收到消息的协程, 本程序主要的协程(其实outTag里有sess字段, 也有ctrl字段来控制停止发送)
 
 	for {
-		// header
 		conn.SetReadDeadline(time.Now().Add(TCP_TIMEOUT * time.Second)) // 设置tcp读超时
-		// --这个 ReadFull 非常好用, 作用是一直等到读取header大小的字节数为止
-		n, err := io.ReadFull(conn, header)
+
+		data, err := PreDecode(conn, header)
 		if err != nil {
-			fmt.Println("Error recv header:", n, err)
 			break
 		}
 
-		// data
-		// length := zcodec.ToUInt32(header, 62)
-		length := binary.BigEndian.Uint32(header)
-		data := make([]byte, length)
-		n, err = io.ReadFull(conn, data)
-		if err != nil {
-			fmt.Println("Error recv msg:", n, err)
-			break
-		}
 		// data初步解析好了, 得到了一个完整的消息, 送去继续处理
 		select {
 		case inChs <- data:
@@ -99,4 +88,24 @@ func handleClient(conn *net.TCPConn) {
 			return
 		}
 	}
+}
+
+func PreDecode(conn *net.TCPConn, header []byte) (data []byte, err error) {
+	// header
+	// --这个 ReadFull 非常好用, 作用是一直等到读取header大小的字节数为止
+	n, err := io.ReadFull(conn, header)
+	if err != nil {
+		fmt.Println("Error recv header:", n, err)
+	}
+
+	// data
+	// length := zcodec.ToUInt32(header, 62)
+	length := binary.BigEndian.Uint32(header)
+	data = make([]byte, length)
+	n, err = io.ReadFull(conn, data)
+	if err != nil {
+		fmt.Println("Error recv msg:", n, err)
+	}
+
+	return
 }
