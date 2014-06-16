@@ -7,16 +7,16 @@ import (
 	"net"
 )
 
-const (
-	DEFAULT_OUTQUEUE_SIZE = 64
+import (
+	"net/ttcp/types"
 )
 
 type Buffer struct {
-	ctrl    chan bool   // receive exit signal
-	pending chan []byte // pending Packet
-	max     int         // max queue size
-	conn    net.Conn    // connection
-	sess    *Session    // session
+	ctrl    chan bool      // receive exit signal
+	pending chan []byte    // pending Packet
+	max     int            // max queue size
+	conn    net.Conn       // connection
+	sess    *types.Session // session
 }
 
 // packet sender goroutine
@@ -84,7 +84,7 @@ func (buf *Buffer) rawSend(data []byte) {
 }
 
 // create a new write buffer
-func NewBuffer(sess *Session, conn net.Conn, ctrl chan bool) *Buffer {
+func NewBuffer(sess *types.Session, conn net.Conn, ctrl chan bool) *Buffer {
 	max := DEFAULT_OUTQUEUE_SIZE
 	buf := Buffer{conn: conn}
 	buf.sess = sess

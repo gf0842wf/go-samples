@@ -9,16 +9,9 @@ import (
 	"time"
 )
 
-// import (
-// 	"zcodec"
-// )
-
-const (
-	ADDR                 = ":8888"
-	TCP_TIMEOUT          = 120
-	MAX_DELAY_IN         = 120
-	DEFAULT_INQUEUE_SIZE = 128
-	TEST                 = true
+import (
+	// "zcodec"
+	"net/ttcp/types"
 )
 
 func main() {
@@ -65,7 +58,7 @@ func handleClient(conn *net.TCPConn) {
 		close(inChs)
 	}()
 
-	var sess Session
+	var sess types.Session
 
 	outTag := NewBuffer(&sess, conn, ctrlCh) // 发送缓存
 
@@ -88,6 +81,8 @@ func handleClient(conn *net.TCPConn) {
 			return
 		}
 	}
+	// TODO: 连接断开, 查询session的状态, 看是否在游戏中,如果不在,删除map中的session,
+	// (如果在, 改变一下session状态为断开,)如果那局游戏结束,把掉线session在map中删除
 }
 
 func PreDecode(conn *net.TCPConn, header []byte) (data []byte, err error) {
