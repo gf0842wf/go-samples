@@ -7,8 +7,8 @@ import (
 	"time"
 )
 
+// 生成随机种子
 func _Seed() {
-	// 生成随机种子
 	rand.Seed(time.Now().UTC().UnixNano())
 }
 
@@ -22,36 +22,54 @@ func Randint(min, max int) int {
 }
 
 // 洗牌, 把切片打乱, inplace 操作
-// 1.随机产生一个1-n的数x,然后让第x张牌和第1张牌互相调换.
-// 2.随机产生一个1-n的数y,然后让第y张牌和第2张牌互相调换.
-// 3.随机产生一个1-n的数z,然后让第z张牌和第i张牌互相调换.(i=3,4,5...54)
 // 算法的复杂度为O(N).
 func Shuffle(pokers interface{}) {
 	switch value := pokers.(type) {
 	case []byte:
 		size := len(value)
-		for i := 1; i < size; i++ {
-			x := Randint(0, size-1)
+		for i := 0; i < size; i++ {
+			x := Randint(i, size-1)
 			value[i], value[x] = value[x], value[i]
 		}
 	case []int:
-
+		size := len(value)
+		for i := 0; i < size; i++ {
+			x := Randint(i, size-1)
+			value[i], value[x] = value[x], value[i]
+		}
 	case []uint16:
-
+		size := len(value)
+		for i := 0; i < size; i++ {
+			x := Randint(i, size-1)
+			value[i], value[x] = value[x], value[i]
+		}
 	case []uint32:
-
+		size := len(value)
+		for i := 0; i < size; i++ {
+			x := Randint(i, size-1)
+			value[i], value[x] = value[x], value[i]
+		}
 	case []uint64:
-
-	case string:
-
+		size := len(value)
+		for i := 0; i < size; i++ {
+			x := Randint(i, size-1)
+			value[i], value[x] = value[x], value[i]
+		}
 	case []string:
-
+		size := len(value)
+		for i := 0; i < size; i++ {
+			x := Randint(i, size-1)
+			value[i], value[x] = value[x], value[i]
+		}
 	default:
 
 	}
 }
 
 // 摸牌, 从切片中随机选一张
+// 注意这个函数的使用(因为返回的是interface{}):
+// s := []byte{3, 4, 5}
+// i := zrandom.Choice(s).(byte)
 func Choice(pokers interface{}) (result interface{}) {
 	// if value, ok := pokers.([]byte); ok {
 	// 	idx := Randint(0, len(value)-1)
@@ -79,6 +97,9 @@ func Choice(pokers interface{}) (result interface{}) {
 	case []string:
 		idx := Randint(0, len(value)-1)
 		result = value[idx]
+	case []bool:
+		idx := Randint(0, len(value)-1)
+		result = value[idx]
 	default:
 		result = nil
 	}
@@ -87,24 +108,92 @@ func Choice(pokers interface{}) (result interface{}) {
 }
 
 // 取样, 从切片中随机选n张
-func Sample(pokers interface{}, n int) (smp interface{}) {
-	// switch value := pokers.(type) {
-	// case []byte:
+func Sample(pokers interface{}, n int) interface{} {
+	switch value := pokers.(type) {
+	case []byte:
+		size := len(value)
+		temp := make([]bool, size)
+		idxs := make([]int, n)
+		i := 0
+		for i < n {
+			// TODO: 这里如果运气不好, 会卡很长时间
+			idx := Randint(0, size-1)
+			if !temp[idx] {
+				idxs[i] = idx
+				temp[idx] = true
+				i++
+			}
+		}
+		smp := make([]byte, n)
+		for k, v := range idxs {
+			smp[k] = value[v]
+		}
+		return smp
+	case []int:
+		size := len(value)
+		temp := make([]bool, size)
+		idxs := make([]int, n)
+		i := 0
+		for i < n {
+			// TODO: 这里如果运气不好, 会卡很长时间
+			idx := Randint(0, size-1)
+			if !temp[idx] {
+				idxs[i] = idx
+				temp[idx] = true
+				i++
+			}
+		}
+		smp := make([]int, n)
+		for k, v := range idxs {
+			smp[k] = value[v]
+		}
+		return smp
+	case []uint16:
 
-	// case []int:
+	case []uint32:
+		size := len(value)
+		temp := make([]bool, size)
+		idxs := make([]int, n)
+		i := 0
+		for i < n {
+			// TODO: 这里如果运气不好, 会卡很长时间
+			idx := Randint(0, size-1)
+			if !temp[idx] {
+				idxs[i] = idx
+				temp[idx] = true
+				i++
+			}
+		}
+		smp := make([]uint32, n)
+		for k, v := range idxs {
+			smp[k] = value[v]
+		}
+		return smp
+	case []uint64:
 
-	// case []uint16:
+	case string:
 
-	// case []uint32:
+	case []string:
+		size := len(value)
+		temp := make([]bool, size)
+		idxs := make([]int, 0)
+		i := 0
+		for i < n {
+			// TODO: 这里如果运气不好, 会卡很长时间
+			idx := Randint(0, size-1)
+			if !temp[idx] {
+				idxs = append(idxs, idx)
+				temp[idx] = true
+				i++
+			}
+		}
+		smp := make([]string, n)
+		for k, v := range idxs {
+			smp[k] = value[v]
+		}
+		return smp
+	default:
 
-	// case []uint64:
-
-	// case string:
-
-	// case []string:
-
-	// default:
-
-	// }
-	return
+	}
+	return nil
 }
