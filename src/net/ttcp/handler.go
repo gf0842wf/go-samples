@@ -16,9 +16,9 @@ func init() {
 	die = make(chan bool)
 }
 
-func HandleRequest(sess *types.Session, inChs chan []byte, outTag *Buffer) {
+func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.SenderBuffer) {
 	// TODO: 在这里初始化session
-
+	sess.Sender = outSender
 	// the main message loop
 	for {
 		select {
@@ -29,29 +29,31 @@ func HandleRequest(sess *types.Session, inChs chan []byte, outTag *Buffer) {
 			fmt.Println("Data:", msg)
 			// 对msg进行处理,并发送result数据给客户端...
 			if sess.LoggedIn { // 已登录
-				// TODO: 去game_proto  (判断是否是重进, 每把游戏有个唯一编号, 如果编号不存在了, 游戏就不存在了)
+				// TODO: 去game_proto
 			} else { // 未登录
 				// TODO: 去user_proto
+				// 登陆时要判断是否是重进, 每把游戏有个唯一编号, 如果编号不存在了, 游戏就不存在了
+				// 如果是重进,则要把之前的sess copy到新sess中,并在map中删除,这个添加到map..并且 outSender 也要这么处理
+				// 要关闭旧连接(如果旧连接还在的话,此时就是异地登陆,要踢掉自己)
 			}
 			result := msg
-			err := outTag.Send(result)
+			err := outSender.Send(result)
 			if err != nil {
 				fmt.Println("Cannot send to client", err)
 				return
 			}
-		// // outTag.ctrl <- true // 发送结束消息,注意这个消息发送后HandleRequest协程也要结束
-
-		// // 其他消息, 如Session中的internal IPC, 控制消息, 定时器消息等
-		// case msg := <-sess.MQ: // internal IPC
-		// 	result := msg
-		// 	err := outTag.Send(result)
-		// 	if err != nil {
-		// 		fmt.Println("Cannot send ipc response", err)
-		// 		return
-		// 	}
-		// }
+		case msg := <-sess.MQ: // internal IPC
+			// TODO: 去ipc_proto
+			fmt.Println(msg)
+			result := []byte("test")
+			err := outSender.Send(result)
+			if err != nil {
+				fmt.Println("Cannot send ipc response", err)
+				return
+			}
+		// 其他消息, 如Session中的internal IPC, 控制消息, 定时器消息等
 		case <-die:
-			// TODD:
+			// TODD: 清理信息
 			return
 		}
 	}

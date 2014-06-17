@@ -58,12 +58,12 @@ func handleClient(conn *net.TCPConn) {
 		close(inChs)
 	}()
 
-	var sess types.Session
+	sess := types.NewSession()
 
-	outTag := NewBuffer(&sess, conn, ctrlCh) // 发送缓存
+	outSender := types.NewSenderBuffer(sess, conn, ctrlCh) // 发送缓存
 
-	go outTag.Start()                      // 开启发送缓存的协程
-	go HandleRequest(&sess, inChs, outTag) // 开启处理收到消息的协程, 本程序主要的协程(其实outTag里有sess字段, 也有ctrl字段来控制停止发送)
+	go outSender.Start()                     // 开启发送缓存的协程
+	go HandleRequest(sess, inChs, outSender) // 开启处理收到消息的协程, (也有ctrl字段来控制停止发送)
 
 	for {
 		conn.SetReadDeadline(time.Now().Add(TCP_TIMEOUT * time.Second)) // 设置tcp读超时
@@ -82,7 +82,7 @@ func handleClient(conn *net.TCPConn) {
 		}
 	}
 	// TODO: 连接断开, 查询session的状态, 看是否在游戏中,如果不在,删除map中的session,
-	// (如果在, 改变一下session状态为断开,)如果那局游戏结束,把掉线session在map中删除
+	// 如果在游戏中, 如果那局游戏结束,把掉线session在map中删除
 }
 
 func PreDecode(conn *net.TCPConn, header []byte) (data []byte, err error) {

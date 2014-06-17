@@ -1,13 +1,23 @@
-// TODO: 这个不应该在main里
 package types
+
+// 连接类型
+
+import (
+	"net"
+)
+
+import (
+	"zrandom"
+)
 
 // TODO: 这里定义Session
 /* Session应该包含的字段
 IP net.IP
-MQ chan []IPCObj // Player's Internal Message Queue  (IPCObj包括发送/接受放ID, 消息(json string), 时间等)
+MQ chan IPCObj // Player's Internal Message Queue  (IPCObj包括发送/接受方ID, 消息(json string), 时间等)
 Encoder
 Decoder
 User // User包含玩家基本信息(ID,昵称,所在游戏类型-游戏编号)(区别Player, Player包含User和游戏内部具体信息)
+TODO: User里包含Session, Player里包含User
 LoggedIn bool
 KickOut bool
 各种时间信息
@@ -19,8 +29,17 @@ KickOut bool
 	MQ-客户端之间的ping: 客户端A(ping)-->A:sess.inChs(ping)-->B:sess.MQ(ping)-->A:sess.MQ(pong)-->客户端A(pong)
 */
 type Session struct {
-	LoggedIn bool // 登陆标志
-	KickOut  bool // 被踢标志
-	Encrypt  bool // 加密标志
-	// InGame   bool // 游戏中标志
+	IP       net.IP
+	LoggedIn bool   // 登陆标志
+	KickOut  bool   // 被踢标志
+	Encrypt  bool   // 加密标志
+	CryptKey uint32 // 加密的key, 由服务器端随机生成发给客户端
+
+	Sender *SenderBuffer
+	MQ     chan IPCObj // Session之间通信队列
+}
+
+func NewSession() *Session {
+	key := zrandom.Randint(0, 2<<31-1) // 随机生成key
+	return &Session{CryptKey: uint32(key), Encrypt: true}
 }
