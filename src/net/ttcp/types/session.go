@@ -29,14 +29,16 @@ KickOut bool
 	MQ-客户端之间的ping: 客户端A(ping)-->A:sess.inChs(ping)-->B:sess.MQ(ping)-->A:sess.MQ(pong)-->客户端A(pong)
 */
 type Session struct {
-	SessID   uint64
+	ID       uint64
 	IP       net.IP
-	LoggedIn bool   // 登陆标志
+	Shaked   bool   // 握手标志
 	KickOut  bool   // 被踢标志
 	Encrypt  bool   // 加密标志
 	IsActive bool   // 连接是否关闭
 	InGaming bool   // 是否游戏中
 	CryptKey uint32 // 加密的key, 由服务器端随机生成发给客户端
+	// Decoder
+	// Encoder
 
 	Sender *SenderBuffer
 	MQ     chan IPCObj // Session之间通信队列
@@ -45,5 +47,5 @@ type Session struct {
 func NewSession() *Session {
 	key := zrandom.Randint(0, 2<<31-1) // 随机生成key
 	SessID += 1
-	return &Session{CryptKey: uint32(key), Encrypt: true, IsActive: true, SessID: SessID}
+	return &Session{CryptKey: uint32(key), Encrypt: true, IsActive: true, ID: SessID}
 }

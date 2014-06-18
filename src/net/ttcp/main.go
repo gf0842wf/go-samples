@@ -85,8 +85,8 @@ func handleClient(conn *net.TCPConn) {
 	// 如果在游戏中, 如果那局游戏结束,把掉线session在map中删除
 	sess.IsActive = false
 	if !sess.InGaming {
-		types.Sessions.Delete(sess.SessID)
-		fmt.Println("Clear session:", sess.SessID)
+		types.Sessions.Delete(sess.ID)
+		fmt.Println("Clear session:", sess.ID)
 	}
 }
 

@@ -108,6 +108,7 @@ func Choice(pokers interface{}) (result interface{}) {
 }
 
 // 取样, 从切片中随机选n张
+// TODO: 这个函数不实用,不再使用
 func Sample(pokers interface{}, n int) interface{} {
 	switch value := pokers.(type) {
 	case []byte:
