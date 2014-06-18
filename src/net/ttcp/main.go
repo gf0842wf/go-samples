@@ -58,7 +58,8 @@ func handleClient(conn *net.TCPConn) {
 	}()
 
 	sess := types.NewSession()
-
+	// add sess to map
+	types.Sessions.Set(types.SessID, sess)
 	outSender := types.NewSenderBuffer(sess, conn, ctrlCh) // 发送缓存
 
 	go outSender.Start()                     // 开启发送缓存的协程
@@ -85,6 +86,7 @@ func handleClient(conn *net.TCPConn) {
 	sess.IsActive = false
 	if !sess.InGaming {
 		types.Sessions.Delete(sess.SessID)
+		fmt.Println("Clear session:", sess.SessID)
 	}
 }
 

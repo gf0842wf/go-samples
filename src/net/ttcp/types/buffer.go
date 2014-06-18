@@ -19,7 +19,7 @@ type SenderBuffer struct {
 func (buf *SenderBuffer) Start() {
 	defer func() {
 		if x := recover(); x != nil {
-			fmt.Println("caught panic in buffer goroutine")
+			fmt.Println("Caught panic in buffer goroutine")
 			panic(x)
 		}
 	}()
@@ -46,7 +46,7 @@ func (buf *SenderBuffer) Start() {
 func (buf *SenderBuffer) Send(data []byte) (err error) {
 	defer func() {
 		if x := recover(); x != nil {
-			fmt.Println("Buffer.Send failed", x)
+			fmt.Println("Buffer.Send failed:", x)
 		}
 	}()
 

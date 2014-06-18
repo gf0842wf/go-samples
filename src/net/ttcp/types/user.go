@@ -25,12 +25,13 @@ type User struct {
 func (user *User) Send(msg []byte) {
 	err := user.Sess.Sender.Send(msg)
 	if err != nil {
-		fmt.Println("User.Send, Cannot send to client", err)
+		fmt.Println("User.Send, Cannot send to client:", err)
 	}
 }
 
 // 强制断开连接
 func (user *User) Disconnect() {
+	fmt.Println("Disconnect:", user.ID, user.Username)
 	user.Sess.Sender.ctrl <- false
 }
 

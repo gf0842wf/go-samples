@@ -1,6 +1,6 @@
 package main
 
-// TODO: 这里处理收到的消息
+// 这里处理收到的消息
 
 import (
 	"fmt"
@@ -17,10 +17,8 @@ func init() {
 }
 
 func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.SenderBuffer) {
-	// TODO: 在这里初始化session
+	// TODO: 在这里更新session的时间等信息
 	sess.Sender = outSender
-	types.Sessions.Set(types.SessID, sess)
-	// stats.Sessions.Set(stats.SessID, sess)
 	// the main message loop
 	for {
 		select {
@@ -41,16 +39,16 @@ func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.Send
 			result := msg
 			err := outSender.Send(result)
 			if err != nil {
-				fmt.Println("Cannot send to client", err)
+				fmt.Println("Cannot send to client:", err)
 				return
 			}
 		case msg := <-sess.MQ: // internal IPC
 			// TODO: 去ipc_proto
-			fmt.Println(msg)
+			fmt.Println("MQ:", msg)
 			result := []byte("test")
 			err := outSender.Send(result)
 			if err != nil {
-				fmt.Println("Cannot send ipc response", err)
+				fmt.Println("Cannot send ipc response:", err)
 				return
 			}
 		// 其他消息, 如Session中的internal IPC, 控制消息, 定时器消息等
