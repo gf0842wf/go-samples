@@ -19,6 +19,8 @@ func init() {
 func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.SenderBuffer) {
 	// TODO: 在这里初始化session
 	sess.Sender = outSender
+	types.Sessions.Set(types.SessID, sess)
+	// stats.Sessions.Set(stats.SessID, sess)
 	// the main message loop
 	for {
 		select {

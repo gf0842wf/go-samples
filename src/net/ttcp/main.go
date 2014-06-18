@@ -10,7 +10,6 @@ import (
 )
 
 import (
-	// "zcodec"
 	"net/ttcp/types"
 )
 
@@ -83,6 +82,10 @@ func handleClient(conn *net.TCPConn) {
 	}
 	// TODO: 连接断开, 查询session的状态, 看是否在游戏中,如果不在,删除map中的session,
 	// 如果在游戏中, 如果那局游戏结束,把掉线session在map中删除
+	sess.IsActive = false
+	if !sess.InGaming {
+		types.Sessions.Delete(sess.SessID)
+	}
 }
 
 func PreDecode(conn *net.TCPConn, header []byte) (data []byte, err error) {
