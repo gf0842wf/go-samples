@@ -28,7 +28,7 @@ func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.Send
 			}
 			fmt.Println("Data:", msg)
 			// 对msg进行处理,并发送result数据给客户端...
-			if sess.LoggedIn { // 已登录
+			if sess.Shaked { // 已登录
 				// TODO: 去game_proto
 			} else { // 未登录
 				// TODO: 去user_proto

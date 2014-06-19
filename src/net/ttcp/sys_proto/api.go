@@ -7,11 +7,11 @@ package user_proto
 
 握手
 =>{"kind":"SYS", "type":"SHAKE", "key":1234}
-<={"kind":"SYS", "type":"SHAKE", "result":0, "message":'ok'}
+<={"kind":"SYS", "type":"SHAKE", "result":{"code":0, "message":'0k'}}
 
 登陆
 <={"kind":"SYS", "type":"LOGIN", user":'fk', "password":'112358'}
-=>{"kind":"SYS", "type":"LOGIN", "result":0, "message":'ok'}
+=>{"kind":"SYS", "type":"LOGIN", "result":{"code":0, "message":'0k'}}
 
 */
 
