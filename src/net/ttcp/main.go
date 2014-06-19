@@ -1,15 +1,15 @@
 package main
 
 import (
-	"encoding/binary"
+	// "errors"
 	"fmt"
-	"io"
 	"net"
 	"runtime"
 	"time"
 )
 
 import (
+	"net/ttcp/codec"
 	"net/ttcp/types"
 )
 
@@ -58,8 +58,10 @@ func handleClient(conn *net.TCPConn) {
 	}()
 
 	sess := types.NewSession()
+	coder := codec.NewCoder()
 	// add sess to map
 	types.Sessions.Set(types.SessID, sess)
+	sess.Coder = coder
 	outSender := types.NewSenderBuffer(sess, conn, ctrlCh) // 发送缓存
 
 	go outSender.Start()                     // 开启发送缓存的协程
@@ -67,9 +69,11 @@ func handleClient(conn *net.TCPConn) {
 
 	for {
 		conn.SetReadDeadline(time.Now().Add(TCP_TIMEOUT * time.Second)) // 设置tcp读超时
-
-		data, err := PreDecode(conn, header)
+		// TODO: 这个在全局分配更好,减少分配时间
+		data := make([]byte, MAX_RECV_DATA_SIZE)
+		err := codec.PreDecode(conn, header, data)
 		if err != nil {
+			fmt.Println(err.Error())
 			break
 		}
 
@@ -88,24 +92,4 @@ func handleClient(conn *net.TCPConn) {
 		types.Sessions.Delete(sess.ID)
 		fmt.Println("Clear session:", sess.ID)
 	}
-}
-
-func PreDecode(conn *net.TCPConn, header []byte) (data []byte, err error) {
-	// header
-	// --这个 ReadFull 非常好用, 作用是一直等到读取header大小的字节数为止
-	n, err := io.ReadFull(conn, header)
-	if err != nil {
-		fmt.Println("Error recv header:", n, err)
-	}
-
-	// data
-	// length := zcodec.ToUInt32(header, 62)
-	length := binary.BigEndian.Uint32(header)
-	data = make([]byte, length)
-	n, err = io.ReadFull(conn, data)
-	if err != nil {
-		fmt.Println("Error recv msg:", n, err)
-	}
-
-	return
 }

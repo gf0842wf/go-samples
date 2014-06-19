@@ -1,3 +1,3 @@
-package user_proto
+package sys_proto
 
 // 登陆消息

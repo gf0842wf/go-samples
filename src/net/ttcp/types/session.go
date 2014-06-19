@@ -7,7 +7,7 @@ import (
 )
 
 import (
-	"zrandom"
+	"net/ttcp/codec"
 )
 
 // TODO: 这里定义Session
@@ -31,21 +31,16 @@ KickOut bool
 type Session struct {
 	ID       uint64
 	IP       net.IP
-	Shaked   bool   // 握手标志
-	KickOut  bool   // 被踢标志
-	Encrypt  bool   // 加密标志
-	IsActive bool   // 连接是否关闭
-	InGaming bool   // 是否游戏中
-	CryptKey uint32 // 加密的key, 由服务器端随机生成发给客户端
-	// Decoder
-	// Encoder
+	KickOut  bool // 被踢标志
+	IsActive bool // 连接是否关闭
+	InGaming bool // 是否游戏中
+	Coder    *codec.Coder
 
 	Sender *SenderBuffer
 	MQ     chan IPCObj // Session之间通信队列
 }
 
 func NewSession() *Session {
-	key := zrandom.Randint(0, 2<<31-1) // 随机生成key
 	SessID += 1
-	return &Session{CryptKey: uint32(key), Encrypt: true, IsActive: true, ID: SessID}
+	return &Session{IsActive: true, ID: SessID}
 }
