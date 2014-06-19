@@ -36,11 +36,12 @@ func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.Send
 			}
 			if result != nil {
 				err = outSender.Send(result)
+				if err != nil {
+					fmt.Println("Cannot send to client:", err)
+					return
+				}
 			}
-			if err != nil {
-				fmt.Println("Cannot send to client:", err)
-				return
-			}
+
 			// // 对msg进行处理,并发送result数据给客户端...
 			// if sess.Shaked { // 已登录
 			// 	// TODO: 去game_proto

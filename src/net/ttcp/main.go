@@ -93,10 +93,11 @@ func handleClient(conn *net.TCPConn) {
 }
 
 func Clear(sess *types.Session) {
-	// clear session
 	if !sess.InGaming {
+		// clear session
 		types.Sessions.Delete(sess.ID)
 		fmt.Println("Clear session:", sess.ID)
+		// TODO: clear user
+
 	}
-	// TODO: clear user
 }

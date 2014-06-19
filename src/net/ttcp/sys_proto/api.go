@@ -27,6 +27,6 @@ func init() {
 	SysProtoHandlers = map[string]func(*types.Session, *proto.Msg) (ack []byte, err error){
 		"SYS.PRESHAKE": handle_preshake,
 		"SYS.ACKSHAKE": handle_ackshake,
-		// "SYS.LOGIN"
+		"SYS.LOGIN":    handle_login,
 	}
 }

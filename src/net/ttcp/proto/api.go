@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-// 收发的消息
+// ----------收发的消息-------------
 type Msg map[string]interface{}
 
 // kind and type 判断
@@ -71,7 +71,7 @@ func NewSendMsg(k, t string) *Msg {
 	return &Msg{"kind": k, "type": t}
 }
 
-// result 字段
+// --------------result 字段-----------
 type R struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
