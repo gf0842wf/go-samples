@@ -3,6 +3,7 @@ package types
 // 连接类型
 
 import (
+	"fmt"
 	"net"
 )
 
@@ -43,4 +44,10 @@ type Session struct {
 func NewSession() *Session {
 	SessID += 1
 	return &Session{IsActive: true, ID: SessID}
+}
+
+// 强制断开连接
+func (sess *Session) Disconnect() {
+	fmt.Println("Disconnect:", sess.ID)
+	sess.Sender.ctrl <- false
 }

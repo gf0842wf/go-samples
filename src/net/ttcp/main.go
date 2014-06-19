@@ -87,9 +87,16 @@ func handleClient(conn *net.TCPConn) {
 	}
 	// TODO: 连接断开, 查询session的状态, 看是否在游戏中,如果不在,删除map中的session,
 	// 如果在游戏中, 如果那局游戏结束,把掉线session在map中删除
-	sess.IsActive = false
+	sess.IsActive = false // 标识:此session的连接不存在了, 但是仍在游戏中
+	Clear(sess)
+
+}
+
+func Clear(sess *types.Session) {
+	// clear session
 	if !sess.InGaming {
 		types.Sessions.Delete(sess.ID)
 		fmt.Println("Clear session:", sess.ID)
 	}
+	// TODO: clear user
 }

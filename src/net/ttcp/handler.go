@@ -28,10 +28,15 @@ func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.Send
 			}
 			fmt.Println("Data:", msg)
 			result, err := SwitchNetProto(sess, msg)
-			if err != nil || result == nil || len(result) == 0 {
-				continue
+			if err != nil {
+				// 断开连接
+				fmt.Println(err.Error())
+				sess.Disconnect()
+				return
 			}
-			err = outSender.Send(result)
+			if result != nil {
+				err = outSender.Send(result)
+			}
 			if err != nil {
 				fmt.Println("Cannot send to client:", err)
 				return

@@ -3,6 +3,7 @@ package main
 // 转接handler里network protocol 和 internal IPC 等
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -26,7 +27,7 @@ func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
 		return
 	}
 	switch kt {
-	case "SYS.PRESHAKE", "SYS.ACKSHAKE": // 等等
+	case "SYS.PRESHAKE", "SYS.ACKSHAKE", "SYS.LOGIN": // 等等
 		if handle, ok := sys_proto.SysProtoHandlers[kt]; ok {
 			ack, err = handle(sess, &obj)
 		}
@@ -36,6 +37,7 @@ func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
 	}
 	if !sess.Coder.Shaked {
 		// 这个时机断开连接: 因为已经第一次收数据了
+		err = errors.New("not shaked")
 	}
 
 	return

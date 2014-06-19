@@ -32,7 +32,7 @@ func (user *User) Send(msg []byte) {
 // 强制断开连接
 func (user *User) Disconnect() {
 	fmt.Println("Disconnect:", user.ID, user.Username)
-	user.Sess.Sender.ctrl <- false
+	user.Sess.Disconnect()
 }
 
 // 发送最后一个消息并断线
