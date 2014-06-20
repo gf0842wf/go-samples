@@ -70,8 +70,7 @@ func handleClient(conn *net.TCPConn) {
 	for {
 		conn.SetReadDeadline(time.Now().Add(TCP_TIMEOUT * time.Second)) // 设置tcp读超时
 		// TODO: 这个在全局分配更好,减少分配时间
-		data := make([]byte, MAX_RECV_DATA_SIZE)
-		err := codec.PreDecode(conn, header, data)
+		data, err := codec.PreDecode(conn, header)
 		if err != nil {
 			fmt.Println(err.Error())
 			break
@@ -85,19 +84,27 @@ func handleClient(conn *net.TCPConn) {
 			return
 		}
 	}
-	// TODO: 连接断开, 查询session的状态, 看是否在游戏中,如果不在,删除map中的session,
-	// 如果在游戏中, 如果那局游戏结束,把掉线session在map中删除
-	sess.IsActive = false // 标识:此session的连接不存在了, 但是仍在游戏中
+	// TODO: 如果那局游戏结束,把掉线user在map中删除
 	Clear(sess)
 
 }
 
 func Clear(sess *types.Session) {
-	if !sess.InGaming {
-		// clear session
-		types.Sessions.Delete(sess.ID)
-		fmt.Println("Clear session:", sess.ID)
-		// TODO: clear user
+	sessID := sess.ID
+	// clear user
+	if uid := types.SessID2UID.Get(sessID); uid != nil {
+		if user_ := types.Users.Get(uid); user_ != nil {
+			user := user_.(*types.User)
+			if !user.InGaming {
+				types.Users.Delete(uid)
+				types.SessID2UID.Delete(sessID)
+			}
+			user.IsActive = false
+		}
 
 	}
+
+	// clear session
+	types.Sessions.Delete(sessID)
+	fmt.Println("Clear session:", sessID)
 }

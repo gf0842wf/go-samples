@@ -7,11 +7,16 @@ import (
 )
 
 type User struct {
-	ID       int32
+	ID       uint32
 	Username string
 	Nickname string
 	Password string
+
 	IsDummy  bool
+	KickOut  bool // 被踢标志
+	IsActive bool // 连接是否关闭
+	InGaming bool // 是否游戏中
+	Logined  bool // 是否登陆
 
 	GameType int32  // 游戏类型,eg.斗地主
 	GameRoom int32  // 在哪房间
@@ -19,6 +24,10 @@ type User struct {
 	GameID   uint64 // 游戏唯一编号
 
 	Sess *Session
+}
+
+func NewUser(userID uint32) *User {
+	return &User{ID: userID, IsActive: true}
 }
 
 // User发送消息

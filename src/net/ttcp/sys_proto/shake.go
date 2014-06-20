@@ -14,8 +14,8 @@ import (
 func handle_preshake(sess *types.Session, obj *proto.Msg) (ack []byte, err error) {
 	ack_obj := proto.NewSendMsg("SYS", "REQSHAKE")
 	(*ack_obj)["key"] = sess.Coder.CryptKey
-	ack = make([]byte, 60)
-	sess.Coder.Encode(ack_obj, ack)
+	ack = make([]byte, 4)
+	ack, err = sess.Coder.Encode(ack_obj)
 	return
 }
 

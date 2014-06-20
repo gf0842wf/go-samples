@@ -30,20 +30,18 @@ KickOut bool
 	MQ-客户端之间的ping: 客户端A(ping)-->A:sess.inChs(ping)-->B:sess.MQ(ping)-->A:sess.MQ(pong)-->客户端A(pong)
 */
 type Session struct {
-	ID       uint64
-	IP       net.IP
-	KickOut  bool // 被踢标志
-	IsActive bool // 连接是否关闭
-	InGaming bool // 是否游戏中
-	Coder    *codec.Coder
+	ID uint32
+	IP net.IP
+
+	Coder *codec.Coder
 
 	Sender *SenderBuffer
 	MQ     chan IPCObj // Session之间通信队列
 }
 
 func NewSession() *Session {
-	SessID += 1
-	return &Session{IsActive: true, ID: SessID}
+	SessID = (SessID + 1) % (2<<31 - 1)
+	return &Session{ID: SessID}
 }
 
 // 强制断开连接
