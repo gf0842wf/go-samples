@@ -49,4 +49,9 @@ while True:
     # print struct.unpack(">I", buf[:4])
     print json.loads(buf[4:])
 
+    data = json.dumps({"kind":"SYS", "type":"ACKSHAKE", "result":{"code":0, "message":'0k'}})
+    length = len(msg)
+    data = struct.pack(">I%ds"%length, length, msg)
+    sock.sendall(data)
+
 sock.close()

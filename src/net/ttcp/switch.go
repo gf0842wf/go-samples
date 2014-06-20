@@ -30,7 +30,7 @@ func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
 		return
 	}
 	switch kt {
-	case "SYS.PRESHAKE", "SYS.ACKSHAKE": // 等等
+	case "SYS.PRESHAKE", "SYS.ACKSHAKE":
 		if handle, ok := sys_proto.SysProtoHandlers[kt]; ok {
 			ack, err = handle(sess, &obj)
 		}
