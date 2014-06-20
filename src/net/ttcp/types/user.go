@@ -21,7 +21,7 @@ type User struct {
 	GameType int32  // 游戏类型,eg.斗地主
 	GameRoom int32  // 在哪房间
 	GameDesk int32  // 在哪桌
-	GameID   uint64 // 游戏唯一编号
+	GameID   uint32 // 游戏唯一编号
 
 	Sess *Session
 }

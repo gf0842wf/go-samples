@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "errors"
 	"fmt"
 	"net"
 	"runtime"
@@ -69,7 +68,6 @@ func handleClient(conn *net.TCPConn) {
 
 	for {
 		conn.SetReadDeadline(time.Now().Add(TCP_TIMEOUT * time.Second)) // 设置tcp读超时
-		// TODO: 这个在全局分配更好,减少分配时间
 		data, err := codec.PreDecode(conn, header)
 		if err != nil {
 			fmt.Println(err.Error())
