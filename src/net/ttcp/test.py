@@ -3,6 +3,7 @@
 import socket
 import struct
 import json
+import time
 
 from array import array
 
@@ -50,8 +51,9 @@ while True:
     print json.loads(buf[4:])
 
     data = json.dumps({"kind":"SYS", "type":"ACKSHAKE", "result":{"code":0, "message":'0k'}})
-    length = len(msg)
-    data = struct.pack(">I%ds"%length, length, msg)
+    length = len(data)
+    data = struct.pack(">I%ds"%length, length, data)
     sock.sendall(data)
+    time.sleep(5)
 
 sock.close()

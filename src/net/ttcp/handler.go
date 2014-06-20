@@ -26,7 +26,7 @@ func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.Send
 			if !ok {
 				return
 			}
-			fmt.Println("Data:", msg)
+			fmt.Println("Data:", string(msg))
 			result, err := SwitchNetProto(sess, msg)
 			if err != nil {
 				// 断开连接
