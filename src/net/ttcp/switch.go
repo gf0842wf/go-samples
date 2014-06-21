@@ -47,14 +47,14 @@ func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
 			return
 		}
 		uid_ := types.SessID2UID.Get(sess.ID)
-		if uid_ == nil {
+		if uid_ == nil { // 未登录
 			err = errors.New("not logined")
 			return
 		}
 		uid = uid_.(uint32)
 		user = types.Users.Get(uid).(*types.User)
 		fmt.Println(user)
-		//  这个是去游戏消息的
+		// 这个是去游戏消息的
 
 	}
 

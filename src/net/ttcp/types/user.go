@@ -16,7 +16,7 @@ type User struct {
 	KickOut  bool // 被踢标志
 	IsActive bool // 连接是否关闭
 	InGaming bool // 是否游戏中
-	Logined  bool // 是否登陆
+	Logined  bool // 是否登陆, TODO: 这个貌似没用
 
 	GameType int32  // 游戏类型,eg.斗地主
 	GameRoom int32  // 在哪房间
