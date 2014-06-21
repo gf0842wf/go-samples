@@ -9,7 +9,7 @@ import (
 
 import (
 	"net/ttcp/proto"
-	"net/ttcp/sys_proto"
+	"net/ttcp/proto/login"
 	"net/ttcp/types"
 )
 
@@ -30,15 +30,8 @@ func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
 		return
 	}
 	switch kt {
-	case "SYS.PRESHAKE", "SYS.ACKSHAKE":
-		if handle, ok := sys_proto.SysProtoHandlers[kt]; ok {
-			ack, err = handle(sess, &obj)
-		}
-	case "SYS.LOGIN":
-		if !sess.Coder.Shaked {
-			err = errors.New("not shaked")
-		}
-		if handle, ok := sys_proto.SysProtoHandlers[kt]; ok {
+	case "SYS.NOP", "SYS.PRESHAKE", "SYS.ACKSHAKE", "SYS.LOGIN":
+		if handle, ok := login.SysProtoHandlers[kt]; ok {
 			ack, err = handle(sess, &obj)
 		}
 	default:
@@ -54,7 +47,7 @@ func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
 		uid = uid_.(uint32)
 		user = types.Users.Get(uid).(*types.User)
 		fmt.Println(user)
-		// 这个是去游戏消息的
+		// 这个是去房间消息的
 
 	}
 

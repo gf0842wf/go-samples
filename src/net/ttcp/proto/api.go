@@ -1,5 +1,7 @@
 package proto
 
+// 收发的消息类型,json都转换为下面的Msg类型
+
 import (
 	"encoding/json"
 	"errors"

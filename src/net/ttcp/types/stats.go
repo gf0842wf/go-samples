@@ -1,5 +1,7 @@
 package types
 
+// 全局变量, sess和user的映射
+
 import (
 	"zmap"
 )

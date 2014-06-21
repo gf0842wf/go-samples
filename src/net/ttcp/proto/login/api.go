@@ -1,9 +1,9 @@
-package sys_proto
+package login
 
 /*
 心跳
 <={"kind":"SYS", "type":"NOP"}
--
+=>{"kind":"SYS", "type":"NOP"}
 
 握手
 <={"kind":"SYS", "type":"PRESHAKE"} // 客户端发送握手准备
@@ -25,6 +25,7 @@ var SysProtoHandlers map[string]func(*types.Session, *proto.Msg) (resp []byte, e
 
 func init() {
 	SysProtoHandlers = map[string]func(*types.Session, *proto.Msg) (ack []byte, err error){
+		"SYS.NOP":      handle_nop,
 		"SYS.PRESHAKE": handle_preshake,
 		"SYS.ACKSHAKE": handle_ackshake,
 		"SYS.LOGIN":    handle_login,

@@ -1,4 +1,4 @@
-package sys_proto
+package login
 
 // 登陆消息
 
@@ -13,6 +13,10 @@ import (
 )
 
 func handle_login(sess *types.Session, obj *proto.Msg) (resp []byte, err error) {
+	if !sess.Coder.Shaked {
+		err = errors.New("not shaked")
+		return
+	}
 	username, ok := (*obj)["username"]
 	if !ok {
 		err = errors.New("no username field")
@@ -23,7 +27,6 @@ func handle_login(sess *types.Session, obj *proto.Msg) (resp []byte, err error) 
 		err = errors.New("no password field")
 		return
 	}
-	resp_obj := proto.NewSendMsg("SYS", "LOGIN")
 	if true {
 		fmt.Println("Login:", username, password)
 		// TODO: 登陆, 获得ID
@@ -48,8 +51,9 @@ func handle_login(sess *types.Session, obj *proto.Msg) (resp []byte, err error) 
 		}
 		user.Logined = true
 		types.SessID2UID.Set(sess.ID, uid)
+		// 回应登陆成功消息
+		resp_obj := proto.NewSendMsg("SYS", "LOGIN")
 		(*resp_obj)["result"] = proto.R{Code: 0, Message: "ok"}
-		resp = make([]byte, 100)
 		resp, err = sess.Coder.Encode(resp_obj)
 
 		fmt.Println("Logined")
