@@ -18,10 +18,10 @@ type User struct {
 	InGaming bool // 是否游戏中
 	Logined  bool // 是否登陆, TODO: 这个貌似没用
 
-	GameType int32  // 游戏类型,eg.斗地主
-	GameRoom int32  // 在哪房间
-	GameDesk int32  // 在哪桌
-	GameID   uint32 // 正在玩的游戏的唯一编号
+	GameType int32  // 游戏类型,eg.100:斗地主
+	RoomID   int32  // 在哪房间, RoomID映射到RoomInfo
+	DeskNo   int32  // 所在桌号
+	GameID   uint32 // 正在玩的游戏的唯一编号(可以自增)
 
 	Sess *Session
 }

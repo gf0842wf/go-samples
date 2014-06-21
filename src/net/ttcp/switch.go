@@ -13,6 +13,7 @@ import (
 	"net/ttcp/types"
 )
 
+var uid_ interface{}
 var uid uint32
 var user *types.User
 
@@ -29,26 +30,34 @@ func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
 		fmt.Println(err.Error())
 		return
 	}
-	switch kt {
-	case "SYS.NOP", "SYS.PRESHAKE", "SYS.ACKSHAKE", "SYS.LOGIN":
+	k, _ := obj.K()
+	switch k {
+	case "SYS": // 握手登陆消息
 		if handle, ok := login.SysProtoHandlers[kt]; ok {
 			ack, err = handle(sess, &obj)
 		}
-	default:
-		if !sess.Coder.Shaked {
-			err = errors.New("not shaked")
-			return
-		}
-		uid_ := types.SessID2UID.Get(sess.ID)
-		if uid_ == nil { // 未登录
+	case "ROOM": // 房间消息
+		uid_ = types.SessID2UID.Get(sess.ID)
+		if uid_ == nil {
 			err = errors.New("not logined")
 			return
 		}
 		uid = uid_.(uint32)
 		user = types.Users.Get(uid).(*types.User)
 		fmt.Println(user)
-		// 这个是去房间消息的
-
+	case "GAME": // 游戏中消息
+		uid_ = types.SessID2UID.Get(sess.ID)
+		if uid_ == nil {
+			err = errors.New("not logined")
+			return
+		}
+		uid = uid_.(uint32)
+		user = types.Users.Get(uid).(*types.User)
+		if !user.InGaming {
+			err = errors.New("not gaming")
+			return
+		}
+	default:
 	}
 
 	return
