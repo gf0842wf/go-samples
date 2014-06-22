@@ -42,8 +42,8 @@ func SwitchNetProto(user *types.User, data []byte) (ack []byte, err error) {
 			return
 		}
 	case "GAME": // 游戏中消息
-		if !user.Logined {
-			err = errors.New("not logined")
+		if !user.InGaming {
+			err = errors.New("not in gaming")
 			return
 		}
 	default:
