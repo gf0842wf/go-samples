@@ -1,4 +1,4 @@
-package login
+package auth
 
 // 登陆消息
 
@@ -49,7 +49,7 @@ func handle_login(user *types.User, obj *proto.Msg) (resp []byte, err error) {
 		}
 		user.Logined = true
 		// 回应登陆成功消息
-		resp_obj := proto.NewSendMsg("SYS", "LOGIN")
+		resp_obj := proto.NewSendMsg("AUTH", "LOGIN")
 		(*resp_obj)["result"] = proto.R{Code: 0, Message: "ok"}
 		resp, err = user.Sess.Coder.Encode(resp_obj)
 

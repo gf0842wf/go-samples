@@ -1,4 +1,4 @@
-package login
+package auth
 
 // 握手信息
 
@@ -12,7 +12,7 @@ import (
 )
 
 func handle_preshake(user *types.User, obj *proto.Msg) (ack []byte, err error) {
-	ack_obj := proto.NewSendMsg("SYS", "REQSHAKE")
+	ack_obj := proto.NewSendMsg("AUTH", "REQSHAKE")
 	(*ack_obj)["key"] = user.Sess.Coder.CryptKey
 	ack, err = user.Sess.Coder.Encode(ack_obj)
 	return

@@ -9,7 +9,7 @@ import (
 
 import (
 	"net/ttcp/proto"
-	"net/ttcp/proto/login"
+	"net/ttcp/proto/auth"
 	"net/ttcp/types"
 )
 
@@ -32,8 +32,8 @@ func SwitchNetProto(user *types.User, data []byte) (ack []byte, err error) {
 	}
 	k, _ := obj.K()
 	switch k {
-	case "SYS": // 握手登陆消息
-		if handle, ok := login.SysProtoHandlers[kt]; ok {
+	case "AUTH": // 握手登陆消息
+		if handle, ok := auth.SysProtoHandlers[kt]; ok {
 			ack, err = handle(user, &obj)
 		}
 	case "ROOM": // 房间消息
