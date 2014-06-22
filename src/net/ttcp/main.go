@@ -92,7 +92,7 @@ func Clear(user *types.User) {
 	user.IsActive = false
 	user.Sess.Coder.Shaked = false
 	if !user.InGaming {
-		types.Users.Delete(uid)
+		types.Users.Delete(user.ID)
 	}
 	fmt.Println("Clear user:", user.ID)
 }
