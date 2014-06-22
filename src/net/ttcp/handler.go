@@ -16,9 +16,9 @@ func init() {
 	die = make(chan bool)
 }
 
-func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.SenderBuffer) {
+func HandleRequest(user *types.User, inChs chan []byte, outSender *types.SenderBuffer) {
 	// TODO: 在这里更新session的时间等信息
-	sess.Sender = outSender
+	user.Sess.Sender = outSender
 	// the main message loop
 	for {
 		select {
@@ -27,11 +27,11 @@ func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.Send
 				return
 			}
 			fmt.Println("Data:", string(msg))
-			result, err := SwitchNetProto(sess, msg)
+			result, err := SwitchNetProto(user, msg)
 			if err != nil {
 				// 断开连接
 				fmt.Println(err.Error())
-				sess.Disconnect()
+				user.Disconnect()
 				return
 			}
 			if result != nil {
@@ -41,7 +41,7 @@ func HandleRequest(sess *types.Session, inChs chan []byte, outSender *types.Send
 					return
 				}
 			}
-		case msg := <-sess.MQ: // internal IPC
+		case msg := <-user.MQ: // internal IPC
 			// TODO: 去ipc_proto
 			fmt.Println("MQ:", msg)
 			result := []byte("test")

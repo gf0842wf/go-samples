@@ -36,7 +36,6 @@ type Session struct {
 	Coder *codec.Coder
 
 	Sender *SenderBuffer
-	MQ     chan IPCObj // Session之间通信队列
 }
 
 func NewSession() *Session {

@@ -18,9 +18,9 @@ var uid uint32
 var user *types.User
 
 // network protocol
-func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
+func SwitchNetProto(user *types.User, data []byte) (ack []byte, err error) {
 	var obj proto.Msg
-	err = sess.Coder.Decode(data, &obj)
+	err = user.Sess.Coder.Decode(data, &obj)
 	if err != nil {
 		fmt.Println("SwitchNetProto decode err:", err.Error())
 		return
@@ -34,27 +34,16 @@ func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
 	switch k {
 	case "SYS": // 握手登陆消息
 		if handle, ok := login.SysProtoHandlers[kt]; ok {
-			ack, err = handle(sess, &obj)
+			ack, err = handle(user, &obj)
 		}
 	case "ROOM": // 房间消息
-		uid_ = types.SessID2UID.Get(sess.ID)
-		if uid_ == nil {
+		if !user.Logined {
 			err = errors.New("not logined")
 			return
 		}
-		uid = uid_.(uint32)
-		user = types.Users.Get(uid).(*types.User)
-		fmt.Println(user)
 	case "GAME": // 游戏中消息
-		uid_ = types.SessID2UID.Get(sess.ID)
-		if uid_ == nil {
+		if !user.Logined {
 			err = errors.New("not logined")
-			return
-		}
-		uid = uid_.(uint32)
-		user = types.Users.Get(uid).(*types.User)
-		if !user.InGaming {
-			err = errors.New("not gaming")
 			return
 		}
 	default:
@@ -64,11 +53,11 @@ func SwitchNetProto(sess *types.Session, data []byte) (ack []byte, err error) {
 }
 
 // internal IPC
-func SwitchIPCProto(sess *types.Session, data []byte) (ack []byte, err error) {
+func SwitchIPCProto(user *types.User, data []byte) (ack []byte, err error) {
 	return
 }
 
 // 定时消息
-func SwitchTMProto(sess *types.Session, data []byte) (ack []byte, err error) {
+func SwitchTMProto(user *types.User, data []byte) (ack []byte, err error) {
 	return
 }

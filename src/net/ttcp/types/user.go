@@ -14,20 +14,22 @@ type User struct {
 
 	IsDummy  bool
 	KickOut  bool // 被踢标志
-	IsActive bool // 连接是否关闭
+	IsActive bool // 是否在线
 	InGaming bool // 是否游戏中
-	Logined  bool // 是否登陆, TODO: 这个貌似没用
+	Logined  bool // 是否登陆
 
 	GameType int32  // 游戏类型,eg.100:斗地主
 	RoomID   int32  // 在哪房间, RoomID映射到RoomInfo
 	DeskNo   int32  // 所在桌号
-	GameID   uint32 // 正在玩的游戏的唯一编号(可以自增)
+	GameID   uint32 // 正在玩的游戏的唯一编号(自增)
+
+	MQ chan IPCObj // User之间通信队列
 
 	Sess *Session
 }
 
-func NewUser(userID uint32) *User {
-	return &User{ID: userID, IsActive: true}
+func NewUser() *User {
+	return &User{IsActive: true}
 }
 
 // User发送消息

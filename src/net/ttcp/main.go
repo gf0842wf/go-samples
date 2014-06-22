@@ -56,15 +56,16 @@ func handleClient(conn *net.TCPConn) {
 		close(inChs)
 	}()
 
+	user := types.NewUser()
 	sess := types.NewSession()
+	user.Sess = sess
 	coder := codec.NewCoder()
-	// add sess to map
-	types.Sessions.Set(types.SessID, sess)
 	sess.Coder = coder
+
 	outSender := types.NewSenderBuffer(sess, conn, ctrlCh) // 发送缓存
 
 	go outSender.Start()                     // 开启发送缓存的协程
-	go HandleRequest(sess, inChs, outSender) // 开启处理收到消息的协程, (也有ctrl字段来控制停止发送)
+	go HandleRequest(user, inChs, outSender) // 开启处理收到消息的协程, (也有ctrl字段来控制停止发送)
 
 	for {
 		conn.SetReadDeadline(time.Now().Add(TCP_TIMEOUT * time.Second)) // 设置tcp读超时
@@ -83,26 +84,15 @@ func handleClient(conn *net.TCPConn) {
 		}
 	}
 	// TODO: 如果那局游戏结束,把掉线user在map中删除
-	Clear(sess)
+	Clear(user)
 
 }
 
-func Clear(sess *types.Session) {
-	sessID := sess.ID
-	// clear user
-	if uid := types.SessID2UID.Get(sessID); uid != nil {
-		if user_ := types.Users.Get(uid); user_ != nil {
-			user := user_.(*types.User)
-			if !user.InGaming {
-				types.Users.Delete(uid)
-				types.SessID2UID.Delete(sessID)
-			}
-			user.IsActive = false
-		}
-
+func Clear(user *types.User) {
+	user.IsActive = false
+	user.Sess.Coder.Shaked = false
+	if !user.InGaming {
+		types.Users.Delete(uid)
 	}
-
-	// clear session
-	types.Sessions.Delete(sessID)
-	fmt.Println("Clear session:", sessID)
+	fmt.Println("Clear user:", user.ID)
 }

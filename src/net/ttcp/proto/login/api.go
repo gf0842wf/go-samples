@@ -21,10 +21,10 @@ import (
 	"net/ttcp/types"
 )
 
-var SysProtoHandlers map[string]func(*types.Session, *proto.Msg) (resp []byte, err error)
+var SysProtoHandlers map[string]func(*types.User, *proto.Msg) (resp []byte, err error)
 
 func init() {
-	SysProtoHandlers = map[string]func(*types.Session, *proto.Msg) (ack []byte, err error){
+	SysProtoHandlers = map[string]func(*types.User, *proto.Msg) (ack []byte, err error){
 		"SYS.NOP":      handle_nop,
 		"SYS.PRESHAKE": handle_preshake,
 		"SYS.ACKSHAKE": handle_ackshake,

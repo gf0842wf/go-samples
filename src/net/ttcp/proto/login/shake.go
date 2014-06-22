@@ -11,15 +11,15 @@ import (
 	"net/ttcp/types"
 )
 
-func handle_preshake(sess *types.Session, obj *proto.Msg) (ack []byte, err error) {
+func handle_preshake(user *types.User, obj *proto.Msg) (ack []byte, err error) {
 	ack_obj := proto.NewSendMsg("SYS", "REQSHAKE")
-	(*ack_obj)["key"] = sess.Coder.CryptKey
-	ack, err = sess.Coder.Encode(ack_obj)
+	(*ack_obj)["key"] = user.Sess.Coder.CryptKey
+	ack, err = user.Sess.Coder.Encode(ack_obj)
 	return
 }
 
-func handle_ackshake(sess *types.Session, obj *proto.Msg) (ack []byte, err error) {
-	sess.Coder.Shaked = true
-	fmt.Println("Shaked:", sess.ID)
+func handle_ackshake(user *types.User, obj *proto.Msg) (ack []byte, err error) {
+	user.Sess.Coder.Shaked = true
+	fmt.Println("Shaked:", user.Sess.ID)
 	return
 }

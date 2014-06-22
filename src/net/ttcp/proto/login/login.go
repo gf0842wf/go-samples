@@ -12,8 +12,8 @@ import (
 	"net/ttcp/types"
 )
 
-func handle_login(sess *types.Session, obj *proto.Msg) (resp []byte, err error) {
-	if !sess.Coder.Shaked {
+func handle_login(user *types.User, obj *proto.Msg) (resp []byte, err error) {
+	if !user.Sess.Coder.Shaked {
 		err = errors.New("not shaked")
 		return
 	}
@@ -28,33 +28,30 @@ func handle_login(sess *types.Session, obj *proto.Msg) (resp []byte, err error) 
 		return
 	}
 	if true {
-		fmt.Println("Login:", username, password)
+		fmt.Println("Login:", username.(string), password.(string))
 		// TODO: 登陆, 获得ID
 		var uid uint32 = 88
-		var user *types.User
 		old_user_ := types.Users.Get(uid)
 		if old_user_ != nil {
-
-			user = old_user_.(*types.User)
-			if user.IsActive { // 异地登陆,也是重连, 可以不在游戏中
-				user.Disconnect() // 只需要关闭连接,旧session在main的Clear里会清理映射
-				user.Sess = sess  // 此时为新user了
-				fmt.Println("Clear old session, new user id:", user.Sess.ID)
+			old_user := old_user_.(*types.User)
+			if old_user.IsActive { // 异地登陆,也是重连, 可以不在游戏中
+				old_user.Disconnect()     // 关闭旧sess
+				old_user.Sess = user.Sess // 只保留old_user的user信息,不要sess信息
+				fmt.Println("Clear old session, new user id:", old_user.Sess.ID)
 			} else { // 重连, 一定是在游戏中,因为没在游戏中的断线都处理了
-				user.Sess = sess
-				user.IsActive = true
+				old_user.Sess = user.Sess
+				old_user.IsActive = true
 				fmt.Println("Reconnect session:", user.Sess.ID)
 			}
-		} else {
-			user = types.NewUser(uid)
+		} else { // 新登陆
+			user.ID = uid
 			types.Users.Set(uid, user)
 		}
 		user.Logined = true
-		types.SessID2UID.Set(sess.ID, uid)
 		// 回应登陆成功消息
 		resp_obj := proto.NewSendMsg("SYS", "LOGIN")
 		(*resp_obj)["result"] = proto.R{Code: 0, Message: "ok"}
-		resp, err = sess.Coder.Encode(resp_obj)
+		resp, err = user.Sess.Coder.Encode(resp_obj)
 
 		fmt.Println("Logined")
 	} else {
