@@ -35,7 +35,7 @@ except socket.error as e:
 remote_addr = ("127.0.0.1", 8888)
 sock.connect(remote_addr)         
 
-msg = {"kind":"SYS", "type":"PRESHAKE"}
+msg = {"kind":"AUTH", "type":"PRESHAKE"}
 msg = json.dumps(msg)
 length = len(msg)
 data = struct.pack(">I%ds"%length, length, msg)
@@ -50,7 +50,7 @@ while True:
     # print struct.unpack(">I", buf[:4])
     print json.loads(buf[4:])
 
-    data = json.dumps({"kind":"SYS", "type":"ACKSHAKE", "result":{"code":0, "message":'0k'}})
+    data = json.dumps({"kind":"AUTH", "type":"ACKSHAKE", "result":{"code":0, "message":'0k'}})
     length = len(data)
     data = struct.pack(">I%ds"%length, length, data)
     sock.sendall(data)
