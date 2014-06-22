@@ -13,10 +13,6 @@ import (
 	"net/ttcp/types"
 )
 
-var uid_ interface{}
-var uid uint32
-var user *types.User
-
 // network protocol
 func SwitchNetProto(user *types.User, data []byte) (ack []byte, err error) {
 	var obj proto.Msg
