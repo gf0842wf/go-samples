@@ -23,6 +23,10 @@ func Randint(min, max int) int {
 
 // 洗牌, 把切片打乱, inplace 操作
 // 算法的复杂度为O(N).
+// 如果是自定义类型,则需要
+/*
+
+*/
 func Shuffle(pokers interface{}) {
 	switch value := pokers.(type) {
 	case []byte:
@@ -61,6 +65,7 @@ func Shuffle(pokers interface{}) {
 			x := Randint(i, size-1)
 			value[i], value[x] = value[x], value[i]
 		}
+
 	default:
 
 	}
@@ -100,10 +105,56 @@ func Choice(pokers interface{}) (result interface{}) {
 	case []bool:
 		idx := Randint(0, len(value)-1)
 		result = value[idx]
+
 	default:
 		result = nil
 	}
 
+	return
+}
+
+// 按照概率选取一个
+func ProbChoice(probs []int, seq interface{}) (e interface{}) {
+	// probs概率: [40, 50, 10]
+	// seq元素: [2, 3, 5]
+	var size int
+	for _, v := range probs {
+		size += v
+	}
+	switch value := seq.(type) {
+	case []byte:
+		idx := 0
+		seq_ := make([]byte, size)
+		for i, v := range value {
+			for j := 0; j < probs[i]; j++ {
+				seq_[idx] = v
+				idx++
+			}
+		}
+		e = Choice(seq_)
+	case []int:
+		idx := 0
+		seq_ := make([]int, size)
+		for i, v := range value {
+			for j := 0; j < probs[i]; j++ {
+				seq_[idx] = v
+				idx++
+			}
+		}
+		e = Choice(seq_)
+	case []uint32:
+		idx := 0
+		seq_ := make([]uint32, size)
+		for i, v := range value {
+			for j := 0; j < probs[i]; j++ {
+				seq_[idx] = v
+				idx++
+			}
+		}
+		e = Choice(seq_)
+
+		// ...其他的省略
+	}
 	return
 }
 
