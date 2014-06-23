@@ -21,10 +21,10 @@ import (
 	"net/ttcp/types"
 )
 
-var SysProtoHandlers map[string]func(*types.User, *proto.Msg) (resp []byte, err error)
+var AuthProtoHandlers map[string]func(*types.User, *proto.Msg) (resp []byte, err error)
 
 func init() {
-	SysProtoHandlers = map[string]func(*types.User, *proto.Msg) (resp []byte, err error){
+	AuthProtoHandlers = map[string]func(*types.User, *proto.Msg) (resp []byte, err error){
 		"AUTH.NOP":      handle_nop,
 		"AUTH.PRESHAKE": handle_preshake,
 		"AUTH.ACKSHAKE": handle_ackshake,

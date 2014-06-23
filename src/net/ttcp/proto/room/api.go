@@ -24,3 +24,17 @@ package room
 =>{"kind":"ROOM", "type":"GAMING"}
 =>{"kind":"ROOM", "type":"GAMING", "result":{"code":0, "message":'0k'}}
 */
+
+import (
+	"net/ttcp/proto"
+	"net/ttcp/types"
+)
+
+var RoomProtoHandlers map[string]func(*types.User, *proto.Msg) (resp []byte, err error)
+
+func init() {
+	RoomProtoHandlers = map[string]func(*types.User, *proto.Msg) (resp []byte, err error){
+		// ..
+		"ROOM.GAMING": handle_gaming,
+	}
+}
