@@ -29,7 +29,7 @@ type User struct {
 }
 
 func NewUser() *User {
-	return &User{IsActive: true}
+	return &User{IsActive: true, GameType: nil, RoomID: nil, DeskNo: nil, GameID: nil}
 }
 
 // User发送消息

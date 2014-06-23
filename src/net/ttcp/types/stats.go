@@ -13,7 +13,11 @@ var SessID uint32 = 0
 var GameID uint32 = 0
 
 // uid 2 user
-var Users *zmap.SafeMap = zmap.NewSafeMap()
+var Users *zmap.SafeMap
 
 // TODO: 增加一个map <UserInfos> uid 2 userinfo 的映射, user具体信息用的不多,所以放在映射里,不放在user字段里
 // TODO: 增加一个map <RoomInfoS> roomid 2 roominfo 的映射
+
+func init() {
+	Users = zmap.NewSafeMap()
+}

@@ -43,6 +43,9 @@ func handle_login(user *types.User, obj *proto.Msg) (resp []byte, err error) {
 				old_user.IsActive = true
 				fmt.Println("Reconnect session:", user.Sess.ID)
 			}
+			if old_user.InGaming {
+				// TODO: 去重进处理
+			}
 		} else { // 新登陆
 			user.ID = uid
 			types.Users.Set(uid, user)
