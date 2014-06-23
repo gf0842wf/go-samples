@@ -56,3 +56,61 @@ func (m *SafeMap) Delete(k interface{}) {
 	defer m.lock.Unlock()
 	delete(m.sm, k)
 }
+
+// 以下几个最好别加锁啊,太耗时了
+
+// Returns the keys of map
+// 协程安全版range
+/*
+for _, v := range sp.Keys() {
+
+}
+*/
+func (m *SafeMap) Keys() []interface{} {
+	m.lock.RLock()
+	keys := make([]interface{}, len(m.sm))
+	i := 0
+	for _, v := range m.sm {
+		keys[i] = v
+		i++
+	}
+	return keys
+}
+
+// Returns the values of map
+// 协程安全版range
+/*
+for _, v := range sp.Vaules() {
+
+}
+*/
+func (m *SafeMap) Values() []interface{} {
+	m.lock.RLock()
+	values := make([]interface{}, len(m.sm))
+	i := 0
+	for _, v := range m.sm {
+		values[i] = v
+		i++
+	}
+	return values
+}
+
+// Return the keys and values of map
+// 协程安全版range
+/*
+ */
+func (m *SafeMap) Items() []interface{} { // [[k, v], ]
+	m.lock.RLock()
+	items := make([]interface{}, 0, len(m.sm))
+	i := 0
+	for k, v := range m.sm {
+		items = append(items, []interface{}{k, v})
+		i++
+	}
+	return items
+}
+
+// 用于range等操作, 非协程安全
+func (m *SafeMap) SM() map[interface{}]interface{} {
+	return m.sm
+}
