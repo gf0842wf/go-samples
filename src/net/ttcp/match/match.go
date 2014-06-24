@@ -70,7 +70,17 @@ func NewDesk() *Desk {
 	return ret
 }
 
-var Desks [DESK_SIZE]*Desk
+type DS [DESK_SIZE]*Desk
+
+func (ds DS) EptPoses() (poses []int) {
+	poses = make([]int, len(ds))
+	for i, d := range ds {
+		poses[i] = d.EptPos()
+	}
+	return
+}
+
+var Desks DS
 
 func (d *Desk) Start() {
 	defer func() {
@@ -91,6 +101,7 @@ func (d *Desk) Start() {
 // 随机分配
 // 调用这个函数要加锁
 func RandAlloc(user *types.User) {
+	poses := Desks.EptPoses()
 	for num, desk := range Desks {
 
 	}
