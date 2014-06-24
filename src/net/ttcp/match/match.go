@@ -16,7 +16,7 @@ import (
 // 这个Desk类可以继承
 type Desk struct {
 	DeskNo    int
-	Status    int // 0-未开始, 1-游戏中, 2-结束游戏
+	Status    int // 0-未开始, 1-游戏中, 2-结算锁定, 3-结束游戏
 	GameID    uint32
 	StartTime time.Time
 	EndTime   time.Time
@@ -89,6 +89,9 @@ func (d *Desk) PrepUser(user *types.User) (r, event bool) {
 	if cnt >= MIN_MEMBERS {
 		// 事件到来,可以开始游戏了
 		event = true
+		if d.Status != 1 {
+			go d.Start()
+		}
 		// TODO:
 	}
 
@@ -211,9 +214,12 @@ func RandAlloc(user *types.User) (err error) {
 	for i := len(poses) - 1; i > 0; i-- {
 		tmp := poses[i]
 		if !HALFWAY_ENTER && Desks[i].Status == 1 { // 游戏不允许中途进入
-			tmp = 0
+			tmp = -1
 		}
-		if poses[deskno] >= tmp && tmp != 0 {
+		if Desks[i].Status == 2 { // 结算时不能加入
+			tmp = -2
+		}
+		if poses[deskno] >= tmp && tmp > 0 {
 			deskno = i
 		}
 	}
