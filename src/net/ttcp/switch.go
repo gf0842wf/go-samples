@@ -46,6 +46,8 @@ func SwitchNetProto(user *types.User, data []byte) (ack []byte, err error) {
 			err = errors.New("not in gaming")
 			return
 		}
+		// TODO: 每个user有deskno号,然后可以直接分发到对于的desk goroutine的MQ
+		// 用一个单独的协程来分发消息吧
 	default:
 	}
 
