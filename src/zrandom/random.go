@@ -158,6 +158,90 @@ func ProbChoice(probs []int, seq interface{}) (e interface{}) {
 	return
 }
 
+// 按照概率选取一个, 并返回index
+func ProbChoiceI(probs []int, seq interface{}) (idx int, e interface{}) {
+	// probs概率: [40, 50, 10]
+	// seq元素: [2, 3, 5]
+	var size int
+	for _, v := range probs {
+		size += v
+	}
+	switch value := seq.(type) {
+	case []byte:
+		c := 0
+		seq_ := make([]byte, size)
+		for i, v := range value {
+			for j := 0; j < probs[i]; j++ {
+				seq_[c] = v
+				c++
+			}
+		}
+		idxs := make([]int, size)
+		for j := 0; j < size; j++ {
+			idxs[j] = j
+		}
+		idx_ := Choice(idxs).(int)
+		e = seq_[idx_]
+		for k, p := range probs {
+			if idx_ < p-1 {
+				idx = k
+				break
+			} else {
+				idx_ -= p
+			}
+		}
+	case []int:
+		c := 0
+		seq_ := make([]int, size)
+		for i, v := range value {
+			for j := 0; j < probs[i]; j++ {
+				seq_[c] = v
+				c++
+			}
+		}
+		idxs := make([]int, size)
+		for j := 0; j < size; j++ {
+			idxs[j] = j
+		}
+		idx_ := Choice(idxs).(int)
+		e = seq_[idx_]
+		for k, p := range probs {
+			if idx_ < p-1 {
+				idx = k
+				break
+			} else {
+				idx_ -= p
+			}
+		}
+	case []uint32:
+		c := 0
+		seq_ := make([]uint32, size)
+		for i, v := range value {
+			for j := 0; j < probs[i]; j++ {
+				seq_[c] = v
+				c++
+			}
+		}
+		idxs := make([]int, size)
+		for j := 0; j < size; j++ {
+			idxs[j] = j
+		}
+		idx_ := Choice(idxs).(int)
+		e = seq_[idx_]
+		for k, p := range probs {
+			if idx_ < p-1 {
+				idx = k
+				break
+			} else {
+				idx_ -= p
+			}
+		}
+
+		// ...其他的省略
+	}
+	return
+}
+
 // 取样, 从切片中随机选n张
 // TODO: 这个函数不实用,不再使用
 func Sample(pokers interface{}, n int) interface{} {
