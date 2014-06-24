@@ -9,6 +9,7 @@ import (
 
 import (
 	"net/ttcp/codec"
+	"net/ttcp/match"
 	"net/ttcp/types"
 )
 
@@ -92,6 +93,7 @@ func Clear(user *types.User) {
 	user.IsActive = false
 	user.Sess.Coder.Shaked = false
 	if !user.InGaming {
+		match.UserLeave(user, 0)
 		types.Users.Delete(user.ID)
 	}
 	fmt.Println("Clear user:", user.ID)
