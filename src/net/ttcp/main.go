@@ -22,7 +22,6 @@ func main() {
 	}()
 
 	runtime.GOMAXPROCS(runtime.NumCPU()) // 开启多核
-
 	tcpAddr, _ := net.ResolveTCPAddr("tcp4", ADDR)
 	listener, err := net.ListenTCP("tcp", tcpAddr)
 	if err != nil {
