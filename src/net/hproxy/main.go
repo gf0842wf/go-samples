@@ -3,13 +3,15 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
 	"net"
 	"runtime"
+	"strconv"
+	"strings"
+	"time"
 )
 
 const (
-	ADDR = ":8888"
+	ADDR = ":8081"
 )
 
 func main() {
@@ -47,9 +49,14 @@ func handleClient(conn *net.TCPConn) {
 		}
 	}()
 
+	gotHeader := false
 	var header []byte
-	var method, url string // "GET", "http://www.baidu.com/"
-	var host string        // "www.baidu.com:80"
+	var ctx []byte
+	var method, url []byte // "GET", "http://www.baidu.com/"
+	var host []byte        // "www.baidu.com:80"
+
+	var posCtxLen int = -1
+	var ctxLen int = 0
 
 	data := make([]byte, 128)
 	buf := make([]byte, 0)
@@ -58,18 +65,90 @@ func handleClient(conn *net.TCPConn) {
 		n, err := conn.Read(data)
 		buf = append(buf, data[:n]...)
 		if err != nil {
-			fmt.Println("Read err")
+			fmt.Println("Svr read err")
 			break
 		}
-		pos := bytes.IndexAny(buf, "\r\n\r\n")
-		if pos == -1 {
-			continue
+		if !gotHeader {
+			pos := bytes.Index(buf, []byte("\r\n\r\n"))
+			if pos == -1 {
+				continue
+			}
+			// 头部读完
+			header = buf[:pos]
+			buf = buf[pos+4:]
+			// 解析头部
+			firstPos := bytes.Index(header, []byte("\r\n"))
+			firstLine := header[:firstPos]
+			mu := bytes.Split(firstLine, []byte(" "))
+			if len(mu) == 2 || len(mu) == 3 {
+				method = mu[0]
+				url = mu[1]
+				fmt.Println("Mu:", string(method), string(url))
+			} else {
+				fmt.Println("Mu error", mu)
+			}
+			host = bytes.TrimRight(bytes.TrimLeft(url, "http://"), "/")
+			posCtxLen = bytes.Index(buf, []byte("Content-Length: "))
+			gotHeader = true
 		}
-		// 头部读完
-		header = buf[:index]
-		buf = buf[index+4:]
-		// 解析头部
-
+		if posCtxLen == -1 {
+			// 没有内容
+			header = append(header, []byte("\r\n\r\n")...)
+			go forward(conn, header, host)
+		} else { // 有内容
+			ctxLine := header[posCtxLen:50]
+			posCtx := bytes.Index(ctxLine, []byte("\r\n"))
+			ctxLen, _ = strconv.Atoi(string(ctxLine[len("Content-Length: "):posCtx]))
+			if len(buf) < ctxLen {
+				continue
+			} else {
+				ctx = buf[:ctxLen]
+				buf = buf[ctxLen:]
+				header = append(header, []byte("\r\n\r\n")...)
+				msg := append(header, ctx...)
+				fmt.Println(string(host), msg[0:1], posCtxLen)
+				go forward(conn, msg, host)
+			}
+		}
 	}
+	fmt.Println("Svr connection lost")
+}
 
+func forward(svrConn *net.TCPConn, msg []byte, host []byte) {
+	defer svrConn.Close()
+	shost := string(host)
+	if strings.Count(shost, ":") == 0 {
+		shost += ":80"
+	}
+	// tcpAddr, err := net.ResolveTCPAddr("tcp4", shost)
+	// if err != nil {
+	// 	fmt.Println("shost:", shost)
+	// 	fmt.Println("Cli addr parse error")
+	// 	return
+	// }
+	cliConn, err := net.Dial("tcp", shost)
+	if err != nil {
+		fmt.Println("Cli dial:", err.Error())
+		return
+	}
+	defer cliConn.Close()
+	n, e := cliConn.Write(msg)
+	if e != nil {
+		fmt.Println("Cli write err:", n, e.Error())
+		return
+	}
+	data := make([]byte, 128)
+	for {
+		n, e := cliConn.Read(data)
+		if e != nil {
+			fmt.Println("Cli read err:", e.Error())
+			break
+		}
+		sn, se := svrConn.Write(data[:n])
+		if se != nil {
+			fmt.Println("Svr write err:", sn, se.Error())
+			break
+		}
+	}
+	fmt.Print("Cli connection lost")
 }
