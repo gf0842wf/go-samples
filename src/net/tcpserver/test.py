@@ -2,6 +2,7 @@
 
 from gevent import socket
 import struct
+import gevent
 
 def create_connection(address, timeout=None, **ssl_args):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,6 +25,7 @@ def create_connection(address, timeout=None, **ssl_args):
 if __name__ == "__main__":
     import struct
     sock = create_connection(("127.0.0.1", 7005))
-    sock.sendall(struct.pack(">I5s", 5, "hello"))
     while True:
+        sock.sendall(struct.pack(">I5s", 5, "hello"))
         print repr(sock.recv(10))
+        gevent.sleep(3)
