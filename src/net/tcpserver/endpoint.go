@@ -17,19 +17,21 @@ import (
 type EndPoint struct {
 	Conn      *net.TCPConn
 	SendBox   chan []byte // 发送缓冲管道
+	RecvBox   chan []byte // 接收缓冲管道
 	Ctrl      chan bool   // 控制结束 EndPoint 所有协程的
 	Heartbeat int64       // 心跳超时(s), < 0表示不设置心跳
 
-	OnData           func(data []byte) // 回调, data: 解析后的消息
-	OnConnectionLost func(err error)   // 回调, err: 断开错误信息
+	// OnData           func(data []byte) // 回调, data: 解析后的消息
+	OnConnectionLost func(err error) // 回调, err: 断开错误信息
 }
 
-func (ep *EndPoint) Init(conn *net.TCPConn, heartbeat int64, bufSize int, OnData func(data []byte), OnConnectionLost func(err error)) {
+func (ep *EndPoint) Init(conn *net.TCPConn, heartbeat int64, sendBufSize int, recvBufSize int, OnConnectionLost func(err error)) {
 	ep.Conn = conn
 	ep.Heartbeat = heartbeat
 	ep.Ctrl = make(chan bool)
-	ep.SendBox = make(chan []byte, bufSize)
-	ep.OnData = OnData
+	ep.SendBox = make(chan []byte, sendBufSize)
+	ep.RecvBox = make(chan []byte, recvBufSize)
+	// ep.OnData = OnData
 	ep.OnConnectionLost = OnConnectionLost
 }
 
@@ -72,9 +74,13 @@ func (ep *EndPoint) RawRecv(header []byte) (n int, err error) {
 		err = errors.New("[EndPoint] Error recv msg:" + strconv.Itoa(n) + ":" + err.Error())
 		return
 	}
-	ep.OnData(data) // go OnData(data)
+	ep.onData(data)
 
 	return
+}
+
+func (ep *EndPoint) onData(data []byte) {
+	ep.RecvBox <- data
 }
 
 func (ep *EndPoint) sendData() {
