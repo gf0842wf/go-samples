@@ -16,9 +16,9 @@ import (
 
 type EndPoint struct {
 	Conn      *net.TCPConn
-	Inbox     chan []byte
-	Ctrl      chan bool // 控制结束 EndPoint 所有协程的
-	Heartbeat int64     // 心跳超时(s), < 0表示不设置心跳
+	SendBox   chan []byte // 发送缓冲管道
+	Ctrl      chan bool   // 控制结束 EndPoint 所有协程的
+	Heartbeat int64       // 心跳超时(s), < 0表示不设置心跳
 
 	OnData           func(data []byte) // 回调, data: 解析后的消息
 	OnConnectionLost func(err error)   // 回调, err: 断开错误信息
@@ -28,25 +28,24 @@ func (ep *EndPoint) Init(conn *net.TCPConn, heartbeat int64, bufSize int, OnData
 	ep.Conn = conn
 	ep.Heartbeat = heartbeat
 	ep.Ctrl = make(chan bool)
-	ep.Inbox = make(chan []byte, bufSize)
+	ep.SendBox = make(chan []byte, bufSize)
 	ep.OnData = OnData
 	ep.OnConnectionLost = OnConnectionLost
 }
 
 func (ep *EndPoint) PutData(data []byte) {
-	ep.Inbox <- data
+	ep.SendBox <- data
 }
 
 func (ep *EndPoint) recvData() {
-	if ep.Heartbeat > 0 {
-		ep.Conn.SetReadDeadline(time.Now().Add(time.Duration(ep.Heartbeat) * time.Second))
-	}
-
 	header := make([]byte, 4)
 
 	var err error
 
 	for {
+		if ep.Heartbeat > 0 {
+			ep.Conn.SetReadDeadline(time.Now().Add(time.Duration(ep.Heartbeat) * time.Second))
+		}
 		_, err = ep.RawRecv(header)
 		if err != nil {
 			break
@@ -73,7 +72,7 @@ func (ep *EndPoint) RawRecv(header []byte) (n int, err error) {
 		err = errors.New("[EndPoint] Error recv msg:" + strconv.Itoa(n) + ":" + err.Error())
 		return
 	}
-	ep.OnData(data)
+	ep.OnData(data) // go OnData(data)
 
 	return
 }
@@ -82,12 +81,12 @@ func (ep *EndPoint) sendData() {
 	header := make([]byte, 4)
 	for {
 		select {
-		case data := <-ep.Inbox:
+		case data := <-ep.SendBox:
 			ep.RawSend(header, data)
 		case <-ep.Ctrl:
-			defer close(ep.Inbox)
+			defer close(ep.SendBox)
 			// 准备关闭连接, 要发完剩下的消息
-			for data := range ep.Inbox {
+			for data := range ep.SendBox {
 				ep.RawSend(header, data)
 			}
 			ep.Conn.Close()
