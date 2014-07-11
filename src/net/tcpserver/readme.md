@@ -15,7 +15,6 @@ sample:
     
     type Bot struct {
     	tcpserver.EndPoint
-    	RecvBox chan []byte
     }
     
     func (bot *Bot) OnData(data []byte) {
@@ -32,6 +31,7 @@ sample:
     	for {
     		select {
     		case data := <-bot.RecvBox:
+    			fmt.Println("Recv:", string(data))
     			bot.PutData(data)
     			// to do something
     		}
@@ -39,9 +39,8 @@ sample:
     }
     
     func connectionHandler(conn *net.TCPConn) {
-    	recvBox := make(chan []byte, 12)
-    	bot := &Bot{RecvBox: recvBox}
-    	bot.Init(conn, 10, 16, bot.OnData, bot.OnConnectionLost)
+    	bot := &Bot{}
+    	bot.Init(conn, 10, 16, 12, bot.OnConnectionLost)
     
     	go bot.Handle()
     
