@@ -25,11 +25,6 @@ Example:
     	Manager *TCPServerManager
     }
     
-    func (bot *Bot) OnData(data []byte) {
-    	fmt.Println("Recv:", string(data))
-    	bot.RecvBox <- data
-    }
-    
     func (bot *Bot) OnConnectionLost(err error) {
     	fmt.Println("Connection Lost:", err.Error())
     	bot.Ctrl <- false
