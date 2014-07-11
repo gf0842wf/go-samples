@@ -3,7 +3,7 @@
 模仿gevent的StreamServer封装golang的tcp server 
 
 
-sample:
+Example:
 
     package main
     
@@ -13,8 +13,16 @@ sample:
     	"net/tcpserver"
     )
     
+    var SID uint32
+    
+    func init() {
+    	SID = 1
+    }
+    
     type Bot struct {
     	tcpserver.EndPoint
+    	ID      uint32
+    	Manager *TCPServerManager
     }
     
     func (bot *Bot) OnData(data []byte) {
@@ -25,6 +33,8 @@ sample:
     func (bot *Bot) OnConnectionLost(err error) {
     	fmt.Println("Connection Lost:", err.Error())
     	bot.Ctrl <- false
+    	fmt.Println(bot.Manager.Clients)
+    	delete(bot.Manager.Clients, bot.ID)
     }
     
     func (bot *Bot) Handle() {
@@ -38,16 +48,34 @@ sample:
     	}
     }
     
-    func connectionHandler(conn *net.TCPConn) {
+    type TCPServerManager struct {
+    	Address string
+    	Clients map[uint32]*Bot // 这个应该加锁,如果是多核的话
+    }
+    
+    func (tsm *TCPServerManager) connectionHandler(conn *net.TCPConn) {
     	bot := &Bot{}
     	bot.Init(conn, 10, 16, 12, bot.OnConnectionLost)
+    	bot.ID = SID
+    	bot.Manager = tsm
+    	SID++
+    
+    	tsm.Clients[bot.ID] = bot
     
     	go bot.Handle()
-    
     	bot.Start()
     }
     
-    func main() {
-    	server := tcpserver.NewStreamServer(":7005", connectionHandler)
+    func (tsm *TCPServerManager) Start() {
+    	server := tcpserver.NewStreamServer(tsm.Address, tsm.connectionHandler)
     	server.Start()
+    }
+    
+    func main() {
+    	manager := &TCPServerManager{Address: ":7005"}
+    	manager.Clients = make(map[uint32]*Bot, 100)
+    	go manager.Start()
+    
+    	waiting := make(chan bool)
+    	<-waiting
     }
