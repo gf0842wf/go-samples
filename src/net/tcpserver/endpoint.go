@@ -62,6 +62,7 @@ func (ep *EndPoint) RawRecv(header []byte) (n int, err error) {
 	n, err = io.ReadFull(ep.Conn, header)
 	if err != nil {
 		err = errors.New("[EndPoint] Error recv header:" + strconv.Itoa(n) + ":" + err.Error())
+		return
 	}
 
 	// data
@@ -70,6 +71,7 @@ func (ep *EndPoint) RawRecv(header []byte) (n int, err error) {
 	n, err = io.ReadFull(ep.Conn, data)
 	if err != nil {
 		err = errors.New("[EndPoint] Error recv msg:" + strconv.Itoa(n) + ":" + err.Error())
+		return
 	}
 	ep.OnData(data)
 
