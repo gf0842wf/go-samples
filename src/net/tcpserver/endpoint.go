@@ -34,13 +34,16 @@ type EndPoint struct {
 	RawSend          interface{} // func([]byte) 回调
 }
 
-func (ep *EndPoint) Init(conn *net.TCPConn, heartbeat int64, sendBufSize int, recvBufSize int, OnConnectionLost interface{}, RawRecv interface{}, RawSend interface{}) {
+func (ep *EndPoint) Init(conn *net.TCPConn, heartbeat int64, sendBufSize int, recvBufSize int) {
 	ep.Conn = conn
 	ep.Heartbeat = heartbeat
 	ep.Ctrl = make(chan bool)
 	ep.SendBox = make(chan []byte, sendBufSize)
 	ep.RecvBox = make(chan []byte, recvBufSize)
+}
 
+// 初始化回调函数
+func (ep *EndPoint) InitCBs(OnConnectionLost interface{}, RawRecv interface{}, RawSend interface{}) {
 	if OnConnectionLost == nil {
 		ep.OnConnectionLost = ep.onConnectionLost
 	} else {
