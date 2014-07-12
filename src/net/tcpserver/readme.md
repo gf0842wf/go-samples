@@ -50,7 +50,7 @@ Example:
     
     func (tsm *TCPServerManager) connectionHandler(conn *net.TCPConn) {
     	bot := &Bot{}
-    	bot.Init(conn, 10, 16, 12, bot.OnConnectionLost)
+    	bot.Init(conn, 10, 16, 12, bot.OnConnectionLost, nil, nil)
     	bot.ID = SID
     	bot.Manager = tsm
     	SID++
