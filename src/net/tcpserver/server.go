@@ -30,7 +30,7 @@ func (svr *StreamServer) Start() {
 	for {
 		conn, err := svr.Listener.AcceptTCP()
 		if err != nil {
-			fmt.Println("[StreamServer] Accept failed:", err)
+			fmt.Println("[SS] Accept failed:", err)
 			continue
 		}
 		go svr.ConnectionHandler(conn)
@@ -48,7 +48,7 @@ func NewStreamServer(addr string, connectionHandler func(conn *net.TCPConn)) *St
 		panic(err)
 	}
 
-	fmt.Println("[StreamServer] Server start:", addr)
+	fmt.Println("[SS] Server start:", addr)
 
 	svr := StreamServer{Address: tcpAddr, Listener: listener, ConnectionHandler: connectionHandler}
 
