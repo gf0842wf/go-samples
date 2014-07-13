@@ -8,6 +8,7 @@ Example:
     package main
     
     import (
+    	"errors"
     	"fmt"
     	"net"
     	"net/tcpserver"
@@ -25,17 +26,17 @@ Example:
     	// 对bot的BR, BW, Conn进行操作吧
     	bot.Conn.SetReadDeadline(time.Now().Add(10))
     	b1, err := bot.BR.ReadByte()
-    	if err != nil {
-    		bot.Close()
-    		return
-    	}
+    	CheckError(err, "Read error!")
     	fmt.Println(b1)
     
     	bot.BW.WriteByte(100)
     	err = bot.BW.Flush()
+    	CheckError(err, "Write error!")
+    }
+    
+    func CheckError(err error, name string) {
     	if err != nil {
-    		bot.Close()
-    		return
+    		panic(errors.New(fmt.Sprintf("%s: %s", name, err.Error())))
     	}
     }
     
