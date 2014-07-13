@@ -1,6 +1,7 @@
 ### TCP服务器 ###
 
-模仿gevent的StreamServer封装golang的tcp server 
+`StreamServer`: 模仿gevent的StreamServer封装golang的tcp server  
+`EndPoint`: client/transport的封装,封装了发送和接收消息
 
 
 Example:
@@ -11,6 +12,7 @@ Example:
     	"fmt"
     	"net"
     	"net/tcpserver"
+    	"net/tcpserver/endpoint"
     )
     
     var SID uint32
@@ -20,7 +22,7 @@ Example:
     }
     
     type Bot struct {
-    	tcpserver.EndPoint
+    	endpoint.EndPoint
     	ID      uint32
     	Manager *TCPServerManager
     }
@@ -74,4 +76,5 @@ Example:
     
     	waiting := make(chan bool)
     	<-waiting
+    
     }
