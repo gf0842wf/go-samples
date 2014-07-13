@@ -23,8 +23,10 @@ Example:
     func connectionHandler(conn *net.TCPConn) {
     	bot := &Bot{}
     	bot.Init(conn)
+
     	// 对bot的BR, BW, Conn进行操作吧
     	bot.Conn.SetReadDeadline(time.Now().Add(10))
+
     	b1, err := bot.BR.ReadByte()
     	CheckError(err, "Read error!")
     	fmt.Println(b1)
