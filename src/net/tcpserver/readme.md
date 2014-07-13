@@ -23,14 +23,16 @@ Example:
     
     type Bot struct {
     	endpoint.EndPoint
+
     	ID      uint32
     	Manager *TCPServerManager
     }
     
     func (bot *Bot) OnConnectionLost(err error) {
     	fmt.Println("Connection Lost:", err.Error())
+        fmt.Println(bot.Manager.Clients)
+
     	bot.Ctrl <- false
-    	fmt.Println(bot.Manager.Clients)
     	delete(bot.Manager.Clients, bot.ID)
     }
     
@@ -50,22 +52,22 @@ Example:
     	Clients map[uint32]*Bot // 这个应该加锁,如果是多核的话
     }
     
-    func (tsm *TCPServerManager) connectionHandler(conn *net.TCPConn) {
+    func (m *TCPServerManager) connectionHandler(conn *net.TCPConn) {
     	bot := &Bot{}
     	bot.Init(conn, 10, 16, 12)
     	bot.InitCBs(bot.OnConnectionLost, nil, nil)
     	bot.ID = SID
-    	bot.Manager = tsm
+    	bot.Manager = m
     	SID++
     
-    	tsm.Clients[bot.ID] = bot
+    	m.Clients[bot.ID] = bot
     
     	go bot.Handle()
     	bot.Start()
     }
     
-    func (tsm *TCPServerManager) Start() {
-    	server := tcpserver.NewStreamServer(tsm.Address, tsm.connectionHandler)
+    func (m *TCPServerManager) Start() {
+    	server := tcpserver.NewStreamServer(m.Address, m.connectionHandler)
     	server.Start()
     }
     
