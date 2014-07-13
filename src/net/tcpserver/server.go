@@ -27,6 +27,8 @@ type StreamServer struct {
 }
 
 func (svr *StreamServer) Start() {
+	defer svr.Listener.Close()
+
 	for {
 		conn, err := svr.Listener.AcceptTCP()
 		if err != nil {
