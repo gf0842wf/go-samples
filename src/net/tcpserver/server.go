@@ -15,7 +15,7 @@ func handleClient(conn *net.TCPConn) {
 }
 
 func main() {
-	svr := server.NewStreamServer(":7005", handleClient)
+	svr := tcpserver.NewStreamServer(":7005", handleClient)
 	svr.Start()
 }
 */
