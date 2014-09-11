@@ -1,5 +1,6 @@
 # 聊天服务器协议 #
 
+`所有时间为unix时间戳且为整数,单位ms,其中uid,sid是数字(在redis中是字符串),gid是字符串`
 ## 前端部署 ##
 haproxy进行tcp负载均衡反向代理
 
@@ -66,16 +67,16 @@ haproxy进行tcp负载均衡反向代理
 
 	分组用户好友关系(set) relation:`gid`:`uid`=>set("1","2","3","4","4","5") # gid:group id, uid:用户的id
     用户分组(set) relation:gids:`uid`=>set("0","1","2","同事") 
-	注: 分组名不能出现:号
+	注: 分组名不能出现:号,'0'是默认分组
 
-	1.用户 36 添加分组'同事'  <'0'是默认分组>
+	1.用户 36 添加分组'同事'  ('0'是默认分组)
 	is_exist = 0
 	if `SISMEMBER relation:gids:36 同事`:
 		is_exist = 1
 	else:
 		`SADD relation:gids:36 同事`
 
-	2.用户 36 删除分组'同事'  <'0'是默认分组>
+	2.用户 36 删除分组'同事'  ('0'是默认分组)
 	is_exist = 1
 	if not `SISMEMBER relation:gids:36 同事`:
 		is_exist = 0
@@ -101,7 +102,7 @@ haproxy进行tcp负载均衡反向代理
 	for gid in `gid`:
 		`SREM relation:`gid`:36 38` 
 
-    5.获取用户 36 的所有好友
+    5.用户 36 获取所有好友
     groups = []
     for gid in `gids`:
         group = {}
@@ -111,6 +112,13 @@ haproxy进行tcp负载均衡反向代理
 
 	#TODO: 用户1和2的共同好友,用户1的好友数等等    
 	#TODO 聊天室功能
+
+## 个人信息 ##
+采用redis
+
+    用户信息,负责登陆(kv) user:`uid`=>`password`
+    1.用户36,密码'1123'登陆认证
+    `GET user:36` == '1123'
 
 ## 状态 ##
 采用redis
@@ -142,31 +150,119 @@ haproxy进行tcp负载均衡反向代理
 	message:
 	{
 		"content":"",
-		"subject":0,
 		"send_time":0,
+		"flag1":uint32,
+		"flag2":byte,
+		"flag3":byte
 	}
 
 ## 在线消息 ##
 暂不保存
 
 ## 消息协议 ##
-暂时采用msgpack  
+消息体暂时采用msgpack  
 中文采用utf8编码  
-消息长度(4bytes)+消息信息+消息体
+消息长度(4bytes)+消息类型(byte)+消息体
 
-消息信息(4+1+8+8+8+4+1)
 
-	{
-		"type":0, # 0-查询消息, 1-聊天消息 (uint32)
-		"online":0, # 0-离线消息, 1-在线消息 (byte)
-		"from":36, # uid    uint64, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
-		"to":38, # target_uid    uint64, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
-		"send_time":0, # unix时间戳(单位ms, uint64)
-		"flag1":uint32,
-		"flag2":byte
-	}
+- 握手 shake
+        
+        消息类型: 0
 
-消息体
+        <=客户端发送握手准备消息 {"type":"PRE"}
+        =>服务器发送key给客户端 {"type":"REQ", "key":uint32}
+        <=客户端响应握手结果 {"type":"ACK", "code":byte(0-ok,其它-ng踢掉此连接)}
 
-	string
+- 心跳 heartbeat
 
+        消息类型: 1
+
+        <=客户端发送心跳 消息体为空
+        服务端不用回应
+
+- 认证 auth
+
+        消息类型: 2
+
+        <=客户端发送用户名密码 {"uid":36, "password":""}
+        =>服务器响应认证结果 {"code":byte(0-ok,其它-ng)}
+
+- 聊天 chat
+
+        消息类型: 3
+
+        服务端负责转发消息的,如果目标不在线要把消息的online改为0存储待转发
+
+    	{
+    		"online":byte, # 0-离线消息, 1-在线消息
+    		"from":36, # uid    uint32, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
+    		"to":38, # target_uid    uint32, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
+    		"send_time":0, # unix时间戳(单位ms, uint64)
+    		"flag1":uint32,
+    		"flag2":byte,
+    		"flag3":byte
+    	}
+        
+
+- 命令 cmd
+    
+        消息类型: 4
+        
+        添加分组
+        <=
+        {
+            "type":"group",
+            "group":"同事",
+            "action":"add"
+        }
+        =>服务器结果 {"code":byte(0-ok,其它-ng)}
+        
+        删除分组
+        <=
+        {
+            "type":"group",
+            "group":"同事",
+            "action":"del"
+        }
+        =>服务器结果 {"code":byte(0-ok,其它-ng)}
+        
+        添加用户到分组
+        <=
+        {
+            "type":"user",
+            "user":38,
+            "group":"同事",
+            "action":"add"
+        }
+        =>服务器结果 {"code":byte(0-ok,其它-ng)}
+        
+        删除用户
+        <=
+        {
+            "type":"user",
+            "user":38,
+            "action":"add"
+        }
+        =>服务器结果 {"code":byte(0-ok,其它-ng)}
+        
+        获取所有好友及在线状态 (在线状态可以不获取,定时广播?)
+        <=
+        {
+            "type":"user",
+            "action":"getall"
+        }
+        =>
+        {
+            "code":byte, (0-ok,其它-ng)
+            "groups":
+            [
+                "gid":"同事",
+                "members":
+                [
+                    {
+                       "uid":38,
+                       "online":1
+                    }
+                ],
+            ]
+        }
