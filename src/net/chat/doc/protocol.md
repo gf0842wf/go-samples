@@ -3,7 +3,65 @@
 ## 前端部署 ##
 haproxy进行tcp负载均衡反向代理
 
-## 好友关系维护 ##
+	<haproxy.cfg>
+	# this config needs haproxy-1.1.28 or haproxy-1.2.1
+	
+	global
+		log 127.0.0.1	local0
+		log 127.0.0.1	local1 notice
+		#log loghost	local0 info
+		maxconn 65535
+		ulimit-n 131086
+		#chroot /usr/share/haproxy
+		user haproxy
+		group haproxy
+		daemon
+		nbproc  5 # 五个并发进程
+		pidfile /var/run/haproxy.pid
+		#debug
+		#quiet
+	
+	defaults
+		#log	global
+		mode	http
+		option	httplog
+		option	dontlognull
+		retries	2
+		option redispatch
+		maxconn	4096
+		contimeout	5000
+		clitimeout	50000
+		srvtimeout	50000
+	
+	########统计页面配置########
+	listen admin_stats
+		bind 0.0.0.0:9100               #监听端口 
+		mode http                       #http的7层模式  
+		option httplog                  #采用http日志格式 
+		log 127.0.0.1 local0 err
+		maxconn 10
+		stats enable
+		stats refresh 30s               #统计页面自动刷新时间  
+		stats uri /                     #统计页面url  
+		stats realm XingCloud\ Haproxy  #统计页面密码框上提示文本  
+		stats auth admin:admin          #统计页面用户名和密码设置  
+		stats hide-version              #隐藏统计页面上HAProxy的版本信息  
+	
+	########chat服务器配置############# 
+	listen chat
+		bind 0.0.0.0:9000
+		mode tcp
+		maxconn 100000
+		log 127.0.0.1 local0 debug
+		server s1 192.168.1.111:9001 weight 1 # 这个可以部署haproxy,但是最好别
+		server s1 192.168.1.112:9001 weight 5
+		server s1 192.168.1.113:9001 weight 5
+		server s1 192.168.1.114:9001 weight 5
+	########frontend配置############### 
+`sudo haproxy -f /etc/haproxy/haproxy.cfg`
+
+
+## 好友关系 ##
 采用redis  
 
 	分组用户好友关系(set) relation:`gid`:`uid`=>set("1","2","3","4","4","5") # gid:group id, uid:用户的id
@@ -52,10 +110,9 @@ haproxy进行tcp负载均衡反向代理
         groups.append(group)
 
 	#TODO: 用户1和2的共同好友,用户1的好友数等等    
-	#TODO 好友采用zset存储,score存储添加好友的时间戳?
+	#TODO 聊天室功能
 
-
-## 状态维护 ##
+## 状态 ##
 采用redis
 
 	用户所在服务器(kv) status:`uid`=>`sid` # sid:server id
@@ -75,4 +132,41 @@ haproxy进行tcp负载均衡反向代理
 	4.服务器2的用户数
 	`ZCARD status:2`
 
-	# TODO: 状态统计信息
+	# TODO: 其他状态统计信息
+
+## 离线消息 ##
+采用redis
+
+	用户到xx的离线消息(hash) msg:offline:`uid`=>`target_uid`=>`message`
+	target_uid:见下面的消息协议说明
+	message:
+	{
+		"content":"",
+		"subject":0,
+		"send_time":0,
+	}
+
+## 在线消息 ##
+暂不保存
+
+## 消息协议 ##
+暂时采用msgpack  
+中文采用utf8编码  
+消息长度(4bytes)+消息信息+消息体
+
+消息信息(4+1+8+8+8+4+1)
+
+	{
+		"type":0, # 0-查询消息, 1-聊天消息 (uint32)
+		"online":0, # 0-离线消息, 1-在线消息 (byte)
+		"from":36, # uid    uint64, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
+		"to":38, # target_uid    uint64, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
+		"send_time":0, # unix时间戳(单位ms, uint64)
+		"flag1":uint32,
+		"flag2":byte
+	}
+
+消息体
+
+	string
+
