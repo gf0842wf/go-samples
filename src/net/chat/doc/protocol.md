@@ -1,6 +1,8 @@
 # 聊天服务器协议 #
 
-`所有时间为unix时间戳且为整数,单位ms,其中uid,sid是数字(在redis中是字符串),gid是字符串`
+`所有时间为unix时间戳且为整数,单位ms,其中uid,sid是数字(在redis中是字符串),gid是字符串`  
+`now = int(time.time()*1000)`
+
 ## 前端部署 ##
 haproxy进行tcp负载均衡反向代理
 
@@ -116,29 +118,36 @@ haproxy进行tcp负载均衡反向代理
 ## 个人信息 ##
 采用redis
 
-    用户信息,负责登陆(kv) user:`uid`=>`password`
+    用户信息,负责登陆等(hash) 
+	user:`uid`=>password=>`password`
+	user:`uid`=>nickname=>`nickname`
+	...
     1.用户36,密码'1123'登陆认证
     `GET user:36` == '1123'
 
 ## 状态 ##
-采用redis
+采用redis key过期设置3天
 
-	用户所在服务器(kv) status:`uid`=>`sid` # sid:server id
-	服务器所有用户(zset) status:`sid`=>uid=>time.time() # uid作为member, time.time()作为score(建立连接时的时间戳)
+	用户所在服务器(kv) status:uid:`uid`=>`sid` # sid:server id
+	服务器所有用户(zset) status:sid:`sid`=>uid=>now # uid作为member, now作为score(建立连接时的时间戳)
 	
 	1.用户36在服务器2上线
-	`SET status:36 2`
-	`ZADD status:2 time.time() 36`
+	`SET status:uid:36 2`
+	`ZADD status:sid:2 `now` 36`
 
 	2.用户36所在服务器(是否在线)
-	`GET status:36`
+	`GET status:uid:36`
 
 	3.用户36下线
-	sid = `GET status:36`
-	`ZREM status:`sid` 36`
+	sid = `GET status:uid:36`
+	`ZREM status:sid:`sid` 36`
+	`DEL status:uid:36`
 
 	4.服务器2的用户数
-	`ZCARD status:2`
+	`ZCARD status:sid:2`
+	
+	5.服务器所有用户数
+	`KEYS status:uid*`
 
 	# TODO: 其他状态统计信息
 
@@ -160,7 +169,7 @@ haproxy进行tcp负载均衡反向代理
 暂不保存
 
 ## 消息协议 ##
-消息体暂时采用msgpack  
+消息体暂时采用 json  
 中文采用utf8编码  
 消息长度(4bytes)+消息类型(byte)+消息体
 
@@ -187,26 +196,37 @@ haproxy进行tcp负载均衡反向代理
         <=客户端发送用户名密码 {"uid":36, "password":""}
         =>服务器响应认证结果 {"code":byte(0-ok,其它-ng)}
 
+- 请求离线消息 check offline message
+
+		消息类型: 3 
+
+		<=客户端请求离线消息 消息体为空
+		=>服务端发送离线消息(sort by send_time desc)
+		[
+	    	{消息体,见聊天消息},
+		]
+
 - 聊天 chat
 
-        消息类型: 3
+        消息类型: 4
 
         服务端负责转发消息的,如果目标不在线要把消息的online改为0存储待转发
 
     	{
-    		"online":byte, # 0-离线消息, 1-在线消息
-    		"from":36, # uid    uint32, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
-    		"to":38, # target_uid    uint32, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
-    		"send_time":0, # unix时间戳(单位ms, uint64)
-    		"flag1":uint32,
-    		"flag2":byte,
-    		"flag3":byte
+			"line":byte, # 0-离线消息, 1-在线消息
+			"from":36, # uid    uint32, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
+			"to":38, # target_uid    uint32, [1, 50)系统预留, [50, 150)聊天室, [150, 1000)预留, [1000, +∞)用户
+			"st":0, # 发送时间,unix时间戳(单位ms, uint64)
+			"flg1":uint32,
+			"flg2":byte,
+			"flg3":byte,
+			"ctx":"", # 消息内容
     	}
         
 
 - 命令 cmd
     
-        消息类型: 4
+        消息类型: 5
         
         添加分组
         <=
@@ -245,7 +265,7 @@ haproxy进行tcp负载均衡反向代理
         }
         =>服务器结果 {"code":byte(0-ok,其它-ng)}
         
-        获取所有好友及在线状态 (在线状态可以不获取,定时广播?)
+        获取所有好友及在线状态 (在线状态可以不获取,定时广播)
         <=
         {
             "type":"user",
@@ -256,13 +276,17 @@ haproxy进行tcp负载均衡反向代理
             "code":byte, (0-ok,其它-ng)
             "groups":
             [
-                "gid":"同事",
-                "members":
-                [
-                    {
-                       "uid":38,
-                       "online":1
-                    }
-                ],
+				{
+                	"gid":"同事",
+                	"members":[],
+				}
             ]
         }
+
+- 通知    `添加好友会有通知消息发给对方(可以配置是否通知),等等`
+	
+		消息类型: 6
+
+		消息体同聊天消息
+
+## IPC消息 ##
